@@ -13,6 +13,9 @@ NonPrimitiveTypes
   = "Array"
   / "Struct"
 
+ReservedKeywords
+  = "null"
+
 // Otros
 
 SingleLineComment "single line comment"
