@@ -1,5 +1,16 @@
 // Terminales
 
+// Palabras reservadas
+
+Types
+  = "int"
+  / "float"
+  / "string"
+  / "boolean"
+  / "char"
+
+// Otros
+
 SingleLineComment "single line comment"
   = "//".*
 
