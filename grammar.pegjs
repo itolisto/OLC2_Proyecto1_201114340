@@ -2,12 +2,16 @@
 
 // Palabras reservadas
 
-Types
+PrimitiveTypes
   = "int"
   / "float"
   / "string"
   / "boolean"
   / "char"
+
+NonPrimitiveTypes
+  = "Array"
+  / "Struct"
 
 // Otros
 
