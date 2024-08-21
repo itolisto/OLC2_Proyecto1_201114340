@@ -1,17 +1,24 @@
 // No terminales
 
 Start
-  = Block
+  = File
+  
+File
+  = Block File
+  / Variable File
+  / _
 
 Block
-  = "{" _ Sentence _ "}" _ Block _
-  / Variable _ Block _
-  / _
+  = _ "{" _ File _ "}" _
 
-Sentence
-  = Additive _ Sentence _
-  / Variable _ Sentence _
-  / _
+Variable
+  = _ PrimitiveTypes _ Identifier _ ";"
+  / _ PrimitiveTypes _ Identifier _ "=" _ Expression _ ";"
+  / _ "var" _ Identifier _ "=" _ Expression _ ";"
+
+Expression
+  = Additive
+  / [a-zA-Z_0-9.-]+ // Temporal
 
 Additive
   = Multiplicative _ FirstLevelOperation _ Additive
@@ -24,14 +31,6 @@ Multiplicative
 Primary 
   = Number
   / "(" _ Additive _ ")"
-
-Variable
-  = _ PrimitiveTypes _ Identifier _ ";"
-  / _ PrimitiveTypes _ Identifier _ "=" _ Expression _ ";"
-  / _ "var" _ Identifier _ "=" _ Expression _ ";"
-
-Expression
-  = [a-zA-Z_0-9.-]+ // Temporal
 
 // Terminales
 
