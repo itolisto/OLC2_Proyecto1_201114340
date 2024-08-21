@@ -1,3 +1,26 @@
+// No terminales
+
+Start
+  = Block
+
+Block
+  = "{" _ Sentence _ "}"
+
+Sentence
+  = Additive
+
+Additive
+  = Multiplicative _ FirstLevelOperation _ Additive
+  / Multiplicative
+
+Multiplicative
+  = Primary _ SecondLevelOperation _ Multiplicative
+  / Primary
+
+Primary 
+  = Number
+  / "(" _ Additive _ ")"
+
 // Terminales
 
 // Palabras reservadas
@@ -33,4 +56,20 @@ Identifier
 StringValue
   = "\"".?"\""
 
-// No terminales
+Number
+  = Float
+  / Integer
+
+Integer
+  = [0-9]+
+
+Float
+  = [0-9]+"."[0-9]+
+
+FirstLevelOperation
+  = "+"
+  / "-"
+
+SecondLevelOperation
+  = "*"
+  / "/"
