@@ -4,10 +4,14 @@ Start
   = Block
 
 Block
-  = "{" _ Sentence _ "}"
+  = "{" _ Sentence _ "}" _ Block _
+  / Variable _ Block _
+  / _
 
 Sentence
-  = Additive
+  = Additive _ Sentence _
+  / Variable _ Sentence _
+  / _
 
 Additive
   = Multiplicative _ FirstLevelOperation _ Additive
@@ -20,6 +24,14 @@ Multiplicative
 Primary 
   = Number
   / "(" _ Additive _ ")"
+
+Variable
+  = _ PrimitiveTypes _ Identifier _ ";"
+  / _ PrimitiveTypes _ Identifier _ "=" _ Expression _ ";"
+  / _ "var" _ Identifier _ "=" _ Expression _ ";"
+
+Expression
+  = [a-zA-Z_0-9.-]+ // Temporal
 
 // Terminales
 
@@ -51,7 +63,7 @@ _ "whitespace"
   = [ \t\n\r]*
 
 Identifier
-  = [a-zA-Z_][a-zA-Z_0-9]+
+  = [a-zA-Z_][a-zA-Z_0-9]*
 
 StringValue
   = "\"".?"\""
