@@ -61,10 +61,10 @@ Number
   / Integer
 
 Integer
-  = [0-9]+
+  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
 
 Float
-  = [0-9]+"."[0-9]+
+  = digits:[0-9]+"."decimals:[0-9]+ { return parseFloat(digits.join("") + "." + decimals.join(""), 10); }
 
 FirstLevelOperation
   = "+"
