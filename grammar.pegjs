@@ -1,15 +1,28 @@
 // No terminales
 
 Start
-  = File
+  = Program
+
+Program
+  = Statement+
   
-File
-  = Block File
-  / Variable File
-  / _
+Statement
+  = Block
+  / Variable
+  / Assignment
+  / IfStatement
 
 Block
-  = _ "{" _ File _ "}" _
+  = _ "{" _ Statement* _ "}" _
+
+IfStatement
+  = "if" _ "(" _ Expression _ ")" _ Block _ ElseIfStatement* _ ElseStatement?
+
+ElseIfStatement
+  = "else if" _ "(" _ Expression _ ")" _ Block
+
+ElseStatement
+  = "else" _ Block
 
 Variable
   = _ PrimitiveTypes _ Identifier _ ";"
@@ -18,14 +31,64 @@ Variable
   / _ Identifier _ "=" _ Expression _ ";"
 
 Expression
-  = Additive
-  / StringValue
+  = TernaryExpr
+  / Negation
+  / MathOperation
+  / LogicalOrExpr
+  / Literal
+  / Identifier
+  // / BinaryExpression
+
+Literal
+  = StringValue
   / CharValue
   / BooleanValue
-  / Number
+  / NumberValue
 
-Additive
-  = Multiplicative _ FirstLevelOperation _ Additive
+Negation
+  = "-" MathOperation
+
+// BinaryExpression
+//   = left:Expression operator:ComparationOperator right:Expression
+
+TernaryExpr
+  = condition:LogicalOrExpr _ "?" _ expr1:Expression _ ":" _ expr2:Expression 
+  // {
+  // return {
+  // type: "TernaryExpression",
+  // condition: condition,
+  // consequent: expr1,
+  // alternate: expr2
+  // };
+  // }
+
+LogicalOrExpr
+  = left:LogicalAndExpr ( _ "||" _ right:LogicalAndExpr { return { type: "LogicalOr", left: left, right: right }; })*
+
+LogicalAndExpr
+  = left:EqualityExpr ( _ "&&" _ right:EqualityExpr { return { type: "LogicalAnd", left: left, right: right }; })*
+
+EqualityExpr
+  = left:RelationalExpr ( _ ("==" / "!=") _ right:RelationalExpr { return { type: "Equality", operator: text(), left: left, right: right }; })*
+
+RelationalExpr
+  = left:AdditiveExpr ( _ ("<=" / ">=" / "<" / ">") _ right:AdditiveExpr { return { type: "Relational", operator: text(), left: left, right: right }; })*
+
+AdditiveExpr
+  = left:MultiplicativeExpr ( _ ("+" / "-") _ right:MultiplicativeExpr { return { type: "Additive", operator: text(), left: left, right: right }; })*
+
+MultiplicativeExpr
+  = left:UnaryExpr ( _ ("*" / "/" / "%") _ right:UnaryExpr { return { type: "Multiplicative", operator: text(), left: left, right: right }; })*
+
+UnaryExpr
+  = _ ("!" / "-") _ expr:Primary { return { type: "Unary", operator: text(), expression: expr }; }
+  / _ Primary
+
+Assignment
+  = Identifier AssignationOperator Expression
+
+MathOperation
+  = Multiplicative _ FirstLevelOperation _ MathOperation
   / Multiplicative
 
 Multiplicative
@@ -37,23 +100,23 @@ Module
   / Primary
 
 Primary 
-  = Number
-  / "(" _ Additive _ ")"
+  = NumberValue
+  / "(" _ MathOperation _ ")"
 
 // Terminales
 
 // Palabras reservadas
 
 PrimitiveTypes
-  = "int"
-  / "float"
-  / "string"
-  / "bool"
-  / "char"
+  = "int" { return "int"; }
+  / "float" { return "float"; }
+  / "string" { return "string"; }
+  / "bool" { return "bool"; }
+  / "char" { return "char"; }
 
 NonPrimitiveTypes
-  = "Array"
-  / "Struct"
+  = "Array" { return ""; }
+  / "Struct" { return ""; }
 
 ReservedKeywords
   = "null"
@@ -82,7 +145,7 @@ StringValue
 CharValue
   = "‘"char:[a-zA-Z0-9]"’" { return char; }
 
-Number
+NumberValue
   = float:Float { return float; }
   / integer:Integer { return integer; }
 
@@ -93,32 +156,30 @@ Float
   = digits:[0-9]+"."decimals:[0-9]+ { return parseFloat(digits.join("") + "." + decimals.join(""), 10); }
 
 FirstLevelOperation
-  = "+"
-  / "-"
+  = "+" { return "+"; }
+  / "-" { return "-"; }
 
 SecondLevelOperation
-  = "*"
-  / "/"
+  = "*" { return "*"; }
+  / "/" { return "/"; }
 
 ThirdLevelOperation
-  = "%"
+  = "%" { return "%"; }
 
 AssignationOperator
-  = "="
-  / "+="
-  / "-="
-
-EqualityOperator
-  = "=="
-  / "!="
+  = "=" { return "="; }
+  / "+=" { return "+="; }
+  / "-=" { return "-="; }
 
 ComparationOperator
-  = ">"
-  / "<"
-  / ">="
-  / "<="
+  = "==" { return "=="; }
+  / "!=" { return "!="; }
+  / ">" { return ">"; }
+  / "<" { return "<"; }
+  / ">=" { return ">="; }
+  / "<=" { return "<="; }
 
 LogicalOperator
-  = "&&"
-  / "||"
-  / "!"
+  = "&&" { return "&&"; }
+  / "||" { return "||"; }
+  / "!" { return "!"; }
