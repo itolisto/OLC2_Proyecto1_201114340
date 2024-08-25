@@ -102,3 +102,23 @@ SecondLevelOperation
 
 ThirdLevelOperation
   = "%"
+
+AssignationOperator
+  = "="
+  / "+="
+  / "-="
+
+EqualityOperator
+  = "=="
+  / "!="
+
+ComparationOperator
+  = ">"
+  / "<"
+  / ">="
+  / "<="
+
+LogicalOperator
+  = "&&"
+  / "||"
+  / "!"
