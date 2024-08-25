@@ -15,17 +15,25 @@ Variable
   = _ PrimitiveTypes _ Identifier _ ";"
   / _ PrimitiveTypes _ Identifier _ "=" _ Expression _ ";"
   / _ "var" _ Identifier _ "=" _ Expression _ ";"
+  / _ Identifier _ "=" _ Expression _ ";"
 
 Expression
   = Additive
-  / [a-zA-Z_0-9.-]+ // Temporal
+  / StringValue
+  / CharValue
+  / BooleanValue
+  / Number
 
 Additive
   = Multiplicative _ FirstLevelOperation _ Additive
   / Multiplicative
 
 Multiplicative
-  = Primary _ SecondLevelOperation _ Multiplicative
+  = Module _ SecondLevelOperation _ Multiplicative
+  / Module
+
+Module
+  = Primary _ ThirdLevelOperation _ Module
   / Primary
 
 Primary 
@@ -40,7 +48,7 @@ PrimitiveTypes
   = "int"
   / "float"
   / "string"
-  / "boolean"
+  / "bool"
   / "char"
 
 NonPrimitiveTypes
@@ -62,14 +70,21 @@ _ "whitespace"
   = [ \t\n\r]*
 
 Identifier
-  = [a-zA-Z_][a-zA-Z_0-9]*
+  = required:[a-zA-Z_]optional:[a-zA-Z_0-9]* { return required + optional.join("");  }
+
+BooleanValue
+  = "false" { return false; }
+  / "true" { return true; }
 
 StringValue
-  = "\"".?"\""
+  = '"'content:(![\"].)+'"' { return content.flat().filter(item => item !== undefined).join(""); }
+
+CharValue
+  = "‘"char:[a-zA-Z0-9]"’" { return char; }
 
 Number
-  = Float
-  / Integer
+  = float:Float { return float; }
+  / integer:Integer { return integer; }
 
 Integer
   = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
@@ -84,3 +99,6 @@ FirstLevelOperation
 SecondLevelOperation
   = "*"
   / "/"
+
+ThirdLevelOperation
+  = "%"
