@@ -9,6 +9,9 @@ Statement
   / SwitchStatement
   / WhileStatement
   / ForStatement
+  / _ "break;"
+  / _ "continue;"
+  / _ "return" _ Expression _ ";"
   / Assignment
 
 // ======================================================================
