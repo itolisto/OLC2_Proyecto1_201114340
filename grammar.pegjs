@@ -6,6 +6,7 @@ Start
 Statement
   = Block
   / IfStatement
+  / SwitchStatement
   / Assignment
 
 // ======================================================================
@@ -16,13 +17,22 @@ Block
 // ======================================================================
 
 IfStatement
-  = "if" _ "(" _ Expression _ ")" _ Block _ ElseIfStatement* _ ElseStatement?
+  = _ "if" _ "(" _ Expression _ ")" _ Block _ ElseIfStatement* _ ElseStatement?
 
 ElseIfStatement
-  = "else if" _ "(" _ Expression _ ")" _ Block
+  = _ "else if" _ "(" _ Expression _ ")" _ Block
 
 ElseStatement
-  = "else" _ Block
+  = _ "else" _ Block
+
+// ======================================================================
+
+SwitchStatement
+  = _ "switch" _ "(" _ Expression _ ")" _ "{" _ SwitchClauses _ "}" _
+
+SwitchClauses
+  = "case" _ Expression ":" _ Statement* _ ("break" ";")? _ SwitchClauses
+  / "default" ":" _ Statement* _
 
 // ======================================================================
 
