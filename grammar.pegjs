@@ -7,6 +7,7 @@ Statement
   = Block
   / IfStatement
   / SwitchStatement
+  / WhileStatement
   / Assignment
 
 // ======================================================================
@@ -33,6 +34,11 @@ SwitchStatement
 SwitchClauses
   = "case" _ Expression ":" _ Statement* _ ("break" ";")? _ SwitchClauses
   / "default" ":" _ Statement* _
+
+// ======================================================================
+
+WhileStatement
+  = _ "while" _ "(" _ Expression _ ")" _ "{" _ Statement* _ "}" _
 
 // ======================================================================
 
