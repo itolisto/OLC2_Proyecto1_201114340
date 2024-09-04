@@ -56,10 +56,16 @@ ForCondition
 // ======================================================================
 
 Assignment
-  = _ PrimitiveTypes _ Identifier _ ";"
-  / _ PrimitiveTypes _ Identifier _ "=" _ Expression _ ";"
-  / _ "var" _ Identifier _ AssignationOperator _ Expression _ ";"
-  / _ Identifier _ AssignationOperator _ Expression _ ";"
+  = _ PrimitiveTypes ArrayDimension _ Identifier _ ";" _
+  / _ PrimitiveTypes ArrayDimension _ Identifier _ "=" _ Expression _ ";" _
+  / _ "var" _ Identifier _ AssignationOperator _ Expression _ ";" _
+  / _ Identifier ArrayDimensionAccess _ AssignationOperator _ Expression _ ";" _
+
+ArrayDimension
+  = ("[]")*
+
+ArrayDimensionAccess
+  = ("[" Integer "]")*
 
 // ======================================================================
 
@@ -98,9 +104,11 @@ UnaryExpr
   / Primary
 
 Primary 
-  = NumberValue
+  = "new" _ AnyType ArrayDimensionAccess
+  / NumberValue
   / Identifier
   / Literal
+  / "{"  "}"
   / "(" _ LogicalTernaryExpr _ ")"
 
 Literal
@@ -108,6 +116,10 @@ Literal
   / CharValue
   / BooleanValue
   / NumberValue
+
+AnyType
+  = Identifier
+  / PrimitiveTypes
 
 // Terminales
 
@@ -186,7 +198,3 @@ PrimitiveTypes
   / "string" { return "string"; }
   / "bool" { return "bool"; }
   / "char" { return "char"; }
-
-NonPrimitiveTypes
-  = "Array" { return ""; }
-  / "Struct" { return ""; }
