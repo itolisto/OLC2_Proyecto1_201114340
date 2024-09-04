@@ -113,10 +113,10 @@ Literal
 
 // Otros
 
-SingleLineComment "single line comment"
+SingleLineComment
   = "//".*
 
-MultiLineComment "multi line comment"
+MultiLineComment
   = "/*"[.\n]*"*/"
 
 _ "whitespace"
@@ -190,6 +190,3 @@ PrimitiveTypes
 NonPrimitiveTypes
   = "Array" { return ""; }
   / "Struct" { return ""; }
-
-ReservedKeywords
-  = "null"
