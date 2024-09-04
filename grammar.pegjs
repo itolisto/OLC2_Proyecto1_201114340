@@ -8,6 +8,7 @@ Statement
   / IfStatement
   / SwitchStatement
   / WhileStatement
+  / ForStatement
   / Assignment
 
 // ======================================================================
@@ -39,6 +40,15 @@ SwitchClauses
 
 WhileStatement
   = _ "while" _ "(" _ Expression _ ")" _ "{" _ Statement* _ "}" _
+
+// ======================================================================
+
+ForStatement
+  = _ "for" _ "(" _ ForCondition _ ")" _ "{" _ Statement* _ "}" _
+
+ForCondition
+  = PrimitiveTypes _ Identifier _ "=" _ Expression _ ";" _ Identifier _ ComparationOperator _ Expression _ ";" _ Identifier _ AssignationAutomaticOperator _
+  / PrimitiveTypes _ Identifier _ ":" _ Identifier
 
 // ======================================================================
 
@@ -148,13 +158,17 @@ AssignationOperator
   / "+=" { return "+="; }
   / "-=" { return "-="; }
 
+AssignationAutomaticOperator
+  = "++" { return "++"; }
+  / "--" { return "--"; }
+
 ComparationOperator
   = "==" { return "=="; }
   / "!=" { return "!="; }
-  / ">" { return ">"; }
-  / "<" { return "<"; }
   / ">=" { return ">="; }
   / "<=" { return "<="; }
+  / ">" { return ">"; }
+  / "<" { return "<"; }
 
 LogicalOperator
   = "&&" { return "&&"; }
