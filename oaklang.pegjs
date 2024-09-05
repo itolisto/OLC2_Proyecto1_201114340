@@ -104,11 +104,12 @@ UnaryExpr
   / Primary
 
 Primary 
-  = "new" _ AnyType ArrayDimensionAccess
+  = "new" _ InstanceOf
+  / "null"
   / NumberValue
   / Identifier
   / Literal
-  / "{"  "}"
+  / "{" _ (Primary _ (",")?)+ _ "}"
   / "(" _ LogicalTernaryExpr _ ")"
 
 Literal
@@ -116,6 +117,10 @@ Literal
   / CharValue
   / BooleanValue
   / NumberValue
+
+InstanceOf
+  = AnyType ArrayDimensionAccess
+  / AnyType "{"  "}"
 
 AnyType
   = Identifier
