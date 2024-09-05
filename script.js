@@ -9,7 +9,7 @@ document.querySelectorAll('.tab-button').forEach(button => {
 
 document.addEventListener('DOMContentLoaded', function() {
     const lineNumbers = document.querySelector('.line-numbers');
-    const codeArea = document.getElementById('codeArea');
+    const codeArea = document.getElementById('editor');
 
     function updateLineNumbers() {
         const lines = codeArea.value.split('\n').length;
@@ -47,3 +47,16 @@ function myDropFunc() {
         x.previousElementSibling.className.replace(" w3-green", "");
     }
 }
+
+import { parse } from './oaklang.js'
+
+const editor = document.getElementById('editor');
+const btn = document.getElementById('compile');
+const ast = document.getElementById('ast');
+const output = document.getElementById('output');
+
+btn.addEventListener('click', () => {
+    const sourceCode = editor.value;
+    const arbol = parse(sourceCode);
+    ast.innerHTML = JSON.stringify(arbol, null, 2);
+});

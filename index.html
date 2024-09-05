@@ -4,7 +4,7 @@
         <title>OakLang</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="./style.css">
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     </head>
     <body>
@@ -36,17 +36,20 @@
 
             <div class="code-editor">
                 <div class="line-numbers"></div>
-                <textarea id="w3review" name="w3review" rows="4" cols="60" placeholder="Ingresar código"></textarea>
+                <textarea id="editor" name="w3review" rows="4" cols="60" placeholder="Ingresar código"></textarea>
             </div>
+
+            <button id="compile" type="button">Compilar</button>
             
             <div class="console">
                 <div class="console-header">Consola</div>
                 <div id="consoleOutput">
+                    <pre id="ast"></pre>
                     <p id="output"></p>
                 </div>
             </div>
         </div>
 
-        <script src="script.js"></script>
+        <script type="module" src="script.js"></script>
     </body>
 </html>
