@@ -48,6 +48,7 @@ function myDropFunc() {
     }
 }
 
+import { InterpreterVisitor } from './oaklang.interpreter.impl.js';
 import { parse } from './oaklang.js'
 
 const editor = document.getElementById('editor');
@@ -56,7 +57,15 @@ const ast = document.getElementById('ast');
 const output = document.getElementById('output');
 
 btn.addEventListener('click', () => {
-    const sourceCode = editor.value;
-    const arbol = parse(sourceCode);
-    ast.innerHTML = JSON.stringify(arbol, null, 2);
+    try {
+        const sourceCode = editor.value;
+        const nodes = parse(sourceCode);
+        ast.innerHTML = JSON.stringify(node, null, 2);
+
+        const interpreter = new InterpreterVisitor();
+        nodes.forEach(node => node.accept(interpreter));
+        output.innerHTML = interpreter.output;   
+    } catch (error) {
+        output.innerHTML = JSON.stringify(error, null, 2);
+    }
 });
