@@ -11,6 +11,33 @@
  */
 
 /**
+ * @typedef {Object} Environment
+ * @property {number} scope 
+ * @property {Environment} parent
+ */
+export class Environment {
+    /**
+     * @param {number} scope Nivel del scope
+     * @param {Environment} parent Ambiente padre si hay
+     */
+    constructor(scope, parent) {
+        /**
+         * Nivel del scope
+         * @type {number}
+         * @public
+         */
+        this.scope = scope;
+
+        /**
+         * Ambiente padre si hay
+         * @type {Environment}
+         * @public
+         */
+        this.parent = parent;
+    }
+}
+
+/**
  * @typedef {Object} BaseVisitor
  */
 export class BaseVisitor {

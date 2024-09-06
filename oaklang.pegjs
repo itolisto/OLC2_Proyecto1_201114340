@@ -1,130 +1,142 @@
+{
+  import { NumberNode } from "oaklang.nodes.impl.js";
+
+  const createNode = (type, props) => {
+    const types = {
+      'number': NumberNode
+    }
+    const node = new types[type](location(), props);
+    return node;
+  }
+}
+
 // No terminales
 
 Start
-  = Statement*
+  = stmnt:Statement* { return stmnt; }
   
 Statement
-  = Block
-  / IfStatement
-  / SwitchStatement
-  / WhileStatement
-  / ForStatement
-  / _ "break;"
-  / _ "continue;"
-  / _ "return" _ Expression _ ";"
-  / Assignment
+  = block:Block { return block; }
+  / stmnt:IfStatement { return stmnt; }
+  / stmnt:SwitchStatement { return stmnt; }
+  / stmnt:WhileStatement { return stmnt; }
+  / stmnt:ForStatement { return stmnt; }
+  / _ "break;" { return; }
+  / _ "continue;" { return ; }
+  / _ "return" _ expr:Expression _ ";" { return expr; }
+  / assign:Assignment { return assign; }
 
 // ======================================================================
 
 Block
-  = _ "{" _ Statement* _ "}" _
+  = _ "{" _ stmnt:Statement* _ "}" _ { return stmnt; }
 
 // ======================================================================
 
 IfStatement
-  = _ "if" _ "(" _ Expression _ ")" _ Block _ ElseIfStatement* _ ElseStatement?
+  = _ "if" _ "(" _ expr:Expression _ ")" _ block:Block _ elseIfStmnt:ElseIfStatement* _ elseStmnt:ElseStatement? { return expr + block + elseIfStmnt + elseStmnt; }
 
 ElseIfStatement
-  = _ "else if" _ "(" _ Expression _ ")" _ Block
+  = _ "else if" _ "(" _ expr:Expression _ ")" _ block:Block { return expr + block; }
 
 ElseStatement
-  = _ "else" _ Block
+  = _ "else" _ block:Block { return block; }
 
 // ======================================================================
 
 SwitchStatement
-  = _ "switch" _ "(" _ Expression _ ")" _ "{" _ SwitchClauses _ "}" _
+  = _ "switch" _ "(" _ expr:Expression _ ")" _ "{" _ clauses:SwitchClauses _ "}" _ { return expr + clauses; }
 
 SwitchClauses
-  = "case" _ Expression ":" _ Statement* _ ("break" ";")? _ SwitchClauses
-  / "default" ":" _ Statement* _
+  = "case" _ expr:Expression ":" _ stmnt:Statement* _ ("break" ";")? _ clauses:SwitchClauses { return expr + stmnt + clauses; }
+  / "default" ":" _ stmnt:Statement* _ { return stmnt; }
 
 // ======================================================================
 
 WhileStatement
-  = _ "while" _ "(" _ Expression _ ")" _ "{" _ Statement* _ "}" _
+  = _ "while" _ "(" _ expr:Expression _ ")" _ "{" _ stmnt:Statement* _ "}" _ { return expr + stmnt; }
 
 // ======================================================================
 
 ForStatement
-  = _ "for" _ "(" _ ForCondition _ ")" _ "{" _ Statement* _ "}" _
+  = _ "for" _ "(" _ condition:ForCondition _ ")" _ "{" _ stmnt:Statement* _ "}" _ { return condition + stmnt; }
 
 ForCondition
-  = PrimitiveTypes _ Identifier _ "=" _ Expression _ ";" _ Identifier _ ComparationOperator _ Expression _ ";" _ Identifier _ AssignationAutomaticOperator _
-  / PrimitiveTypes _ Identifier _ ":" _ Identifier
+  = type:PrimitiveTypes _ id:Identifier _ "=" _ expr:Expression _ ";" _ idOp:Identifier _ comparation:ComparationOperator _ compExpr:Expression _ ";" _ idVar:Identifier _ assign:AssignationAutomaticOperator _ { return type + id + expr + idOp + comparation + compExpr + idVar + assign; }
+  / type:PrimitiveTypes _ id:Identifier _ ":" _ from:Identifier { return type + id + from; }
 
 // ======================================================================
 
 Assignment
-  = _ PrimitiveTypes ArrayDimension _ Identifier _ ";" _
-  / _ PrimitiveTypes ArrayDimension _ Identifier _ "=" _ Expression _ ";" _
-  / _ "var" _ Identifier _ AssignationOperator _ Expression _ ";" _
-  / _ Identifier ArrayDimensionAccess _ AssignationOperator _ Expression _ ";" _
+  = _ type:PrimitiveTypes dimensions:ArrayDimension _ identifier:Identifier _ ";" _ { return type + dimensions + identifier; }
+  / _ type:PrimitiveTypes dimensions:ArrayDimension _ identifier:Identifier _ "=" _ expression:Expression _ ";" _ { return type + dimensions + identifier + expression; }
+  / _ "var" _ identifier:Identifier _ assignment:AssignationOperator _ expression:Expression _ ";" _ { return identifier + assignment + expression; }
+  / _ identifier:Identifier dimensions:ArrayDimensionAccess _ assignment:AssignationOperator _ expression:Expression _ ";" _ { return identifier + dimensions + assignment + expression; }
 
 ArrayDimension
-  = ("[]")*
+  = dimensions:("[]")* { return dimensions.length; }
 
 ArrayDimensionAccess
-  = ("[" Integer "]")*
+  = dimensions:("[" Integer "]")* { return dimensions.length; }
 
 // ======================================================================
 
 Expression
-  = LogicalTernaryExpr
+  = expr:LogicalTernaryExpr { return expr; }
 
 LogicalTernaryExpr
-  = condition:LogicalOrExpr _ "?" _ expr1:Expression _ ":" _ expr2:Expression
-  / condition:LogicalOrExpr
+  = condition:LogicalOrExpr _ "?" _ expr1:Expression _ ":" _ expr2:Expression { return condition + expr1 + expr2; }
+  / condition:LogicalOrExpr { return condition; }
 
 LogicalOrExpr
   = left:LogicalAndExpr _ "||" _ right:LogicalAndExpr { return { type: "LogicalOr", left: left, right: right }; }
-  / left:LogicalAndExpr
+  / left:LogicalAndExpr { return left; }
 
 LogicalAndExpr
   = left:EqualityExpr _ "&&" _ right:EqualityExpr { return { type: "LogicalAnd", left: left, right: right }; }
-  / left:EqualityExpr
+  / left:EqualityExpr { return left; }
 
 EqualityExpr
   = left:RelationalExpr _ ("==" / "!=") _ right:RelationalExpr { return { type: "Equality", operator: text(), left: left, right: right }; }
-  / left:RelationalExpr
+  / left:RelationalExpr { return left; }
 
 RelationalExpr
   = left:AdditiveExpr _ ("<=" / ">=" / "<" / ">") _ right:AdditiveExpr { return { type: "Relational", operator: text(), left: left, right: right }; }
-  / left:AdditiveExpr
+  / left:AdditiveExpr { return left; }
 
 AdditiveExpr
   = left:MultiplicativeExpr _ ("+" / "-") _ right:MultiplicativeExpr { return { type: "Additive", operator: text(), left: left, right: right }; }
-  / left:MultiplicativeExpr
+  / left:MultiplicativeExpr { return left; }
 
 MultiplicativeExpr
   = left:UnaryExpr ( _ ("*" / "/" / "%") _ right:UnaryExpr { return { type: "Multiplicative", operator: text(), left: left, right: right }; })*
 
 UnaryExpr
   = ("!" / "-") expr:Primary { return { type: "Unary", operator: text(), expression: expr }; }
-  / Primary
+  / primary:Primary { return primary; }
 
 Primary 
-  = "new" _ InstanceOf
-  / "null"
-  / NumberValue
-  / Identifier
-  / Literal
-  / "{" _ (Primary _ (",")?)+ _ "}"
-  / "(" _ LogicalTernaryExpr _ ")"
+  = "new" _ instanceOf:InstanceOf { return instanceOf; }
+  / "null" { return null; }
+  / value:NumberValue { return value; }
+  / value:Identifier { return value; }
+  / value:Literal { return value; }
+  / "{" _ args:(Primary _ (",")?)+ _ "}" { return args.flatMap(x => x.flat()); }
+  / "(" _ expr:LogicalTernaryExpr _ ")" { return expr; }
 
 Literal
-  = StringValue
-  / CharValue
-  / BooleanValue
-  / NumberValue
+  = value:StringValue { return value; }
+  / value:CharValue { return value; }
+  / value:BooleanValue { return value; }
+  / value:NumberValue { return value; }
 
 InstanceOf
-  = AnyType ArrayDimensionAccess
-  / AnyType "{"  "}"
+  = type:AnyType dimensions:ArrayDimensionAccess { return type + dimensions; }
+  / type:AnyType "{"  "}" { return type; }
 
 AnyType
-  = Identifier
-  / PrimitiveTypes
+  = identifier:Identifier { return identifier; }
+  / type:PrimitiveTypes { return type; }
 
 // Terminales
 
@@ -137,7 +149,7 @@ MultiLineComment
   = "/*"[.\n]*"*/"
 
 _ "whitespace"
-  = [ \t\n\r]*
+  = [ \t\n\r]* { return ""; }
 
 Identifier
   = required:[a-zA-Z_]optional:[a-zA-Z_0-9]* { return required + optional.join("");  }
@@ -150,7 +162,7 @@ StringValue
   = '"'content:(![\"].)+'"' { return content.flat().filter(item => item !== undefined).join(""); }
 
 CharValue
-  = "‘"char:[a-zA-Z0-9]"’" { return char; }
+  = "'"char:[a-zA-Z0-9]"'" { return char; }
 
 NumberValue
   = float:Float { return float; }

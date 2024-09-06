@@ -1,10 +1,10 @@
-import { BaseVisitor } from "./oaklang.base.impl.js";
+import { BaseVisitor, Environment } from "./oaklang.base.impl.js";
 
 export class InterpreterVisitor extends BaseVisitor {
 
     constructor() {
         super();
-        // this.entornoActual = new Entorno();
+        this.env = new Environment();
         this.output = '';
     }
 
@@ -12,6 +12,6 @@ export class InterpreterVisitor extends BaseVisitor {
      * @type {BaseVisitor['visitNumero']}
      */
     visitNumero(node) {
-        
+        return node.valor;
     }
 }
