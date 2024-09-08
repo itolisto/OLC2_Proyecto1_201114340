@@ -9,23 +9,37 @@ FlowControlStatement
 	= nonDeclarativeStatment: FControlInsideStatement _
     / declarativeStatement: DeclarativeStatement _
 
+FunctionStatement
+	= nonDeclarativeStatment: FStatement _
+    / declarativeStatement: DeclarativeStatement _
+
 NonDeclarativeStatement
   = Block
+  / Function
   / Expression _ ";"
   / FlowControl
 
 FControlInsideStatement 
   = FlowControlBlock 
   / TransferStatement 
+  / Function
   / Expression _ ";" 
   / FlowControl
 
-FunctionStatement
+FunFControlInsideStatement 
   = FlowControlBlock 
+  / TransferStatement 
+  / Function
+  / Expression _ ";" 
+  / FlowControl
+
+FStatement
+  =  FunctionBlock 
+  / Function
   / TransferStatement
   / Return
   / Expression _ ";" 
-  / FlowControl
+  / FunFlowControl
 
 Function = FTypes _ Id _ "(" _ ( Parameter (_ "," _ Parameter)*)? _ ")" _ FunctionBlock
 
@@ -36,6 +50,12 @@ TransferStatement
   / "continue" _ ";"
 
 Return = "return" _ Expression? _ ";"
+
+FunFlowControl
+  = "if" _ "(" _ Expression _ ")" _ FunFControlInsideStatement (_ "else " _ FunFControlInsideStatement)?
+  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ Statement*)* _ ("default" _ ":" _ Statement*)? _"}"
+  / "while" _ "(" _ Expression _ ")" _ FunFControlInsideStatement
+  / ForVariation
 
 FlowControl
   = "if" _ "(" _ Expression _ ")" _ FControlInsideStatement (_ "else " _ FControlInsideStatement)?
