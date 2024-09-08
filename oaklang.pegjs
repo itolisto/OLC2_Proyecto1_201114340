@@ -74,8 +74,13 @@ Multiplicative
   / Unary
 
 Unary
-  = ("-"/"!") Primary 
+  = ("-"/"!") Unary 
+  / Call
+
+Call = Id _ ("(" _ Arguments? _")")
   / Primary
+
+Arguments = Expression _ ("," _ Expression)*
 
 Primary
   = Number
