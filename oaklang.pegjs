@@ -12,6 +12,9 @@ FlowControlStatement
 FunctionStatement
 	= nonDeclarativeStatment: FStatement _
     / declarativeStatement: DeclarativeStatement _
+ 
+FunctionFlowControlStatement = nonDeclarativeStatment: FunFlowControlInsideStatement _
+    / declarativeStatement: DeclarativeStatement _
 
 NonDeclarativeStatement
   = Block
@@ -20,15 +23,16 @@ NonDeclarativeStatement
   / FlowControl
 
 FControlInsideStatement 
-  = FlowControlBlock 
+  = FunFlowControlBlock 
   / TransferStatement 
   / Function
   / Expression _ ";" 
   / FlowControl
 
-FunFControlInsideStatement 
-  = FlowControlBlock 
-  / TransferStatement 
+FunFlowControlInsideStatement 
+  = FunFlowControlBlock 
+  / TransferStatement
+  / Return
   / Function
   / Expression _ ";" 
   / FlowControl
@@ -36,14 +40,13 @@ FunFControlInsideStatement
 FStatement
   =  FunctionBlock 
   / Function
-  / TransferStatement
   / Return
   / Expression _ ";" 
   / FunFlowControl
 
-Function = FTypes _ Id _ "(" _ ( Parameter (_ "," _ Parameter)*)? _ ")" _ FunctionBlock
+Function = Id _ Id _ "(" _ ( Parameter (_ "," _ Parameter)*)? _ ")" _ FunctionBlock
 
-Parameter = Types _ Id
+Parameter = Id _ Id
 
 TransferStatement
   = "break" _ ";"
@@ -52,31 +55,37 @@ TransferStatement
 Return = "return" _ Expression? _ ";"
 
 FunFlowControl
-  = "if" _ "(" _ Expression _ ")" _ FunFControlInsideStatement (_ "else " _ FunFControlInsideStatement)?
-  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ Statement*)* _ ("default" _ ":" _ Statement*)? _"}"
-  / "while" _ "(" _ Expression _ ")" _ FunFControlInsideStatement
-  / ForVariation
+  = "if" _ "(" _ Expression _ ")" _ FunFlowControlInsideStatement (_ "else " _ FunFlowControlInsideStatement)?
+  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ FunFlowControlInsideStatement*)* _ ("default" _ ":" _ FunFlowControlInsideStatement*)? _"}"
+  / "while" _ "(" _ Expression _ ")" _ FunFlowControlInsideStatement
+  / ForFunVariation
+
+ForFunVariation
+  =  "for" _ "(" _ (DeclarativeStatement/ Expression _ ";")? _ Expression? _ ";" _ Expression? _ ")" _ FunFlowControlInsideStatement
+  / "for" _ "(" _ (Types / "var") _ Id _ ":" _ Id _")" _ FunFlowControlInsideStatement 
 
 FlowControl
   = "if" _ "(" _ Expression _ ")" _ FControlInsideStatement (_ "else " _ FControlInsideStatement)?
-  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ Statement*)* _ ("default" _ ":" _ Statement*)? _"}"
+  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ FControlInsideStatement*)* _ ("default" _ ":" _ FControlInsideStatement*)? _"}"
   / "while" _ "(" _ Expression _ ")" _ FControlInsideStatement
   / ForVariation
 
 ForVariation
   =  "for" _ "(" _ (DeclarativeStatement/ Expression _ ";")? _ Expression? _ ";" _ Expression? _ ")" _ FControlInsideStatement
-  / "for" _ "(" _ (Types / "var") _ Id _ ":" _ Id _")" _ FControlInsideStatement 
+  / "for" _ "(" _ (Types / "var") _ Id _ ":" _ Id _")" _ FControlInsideStatement
 
 FlowControlBlock = "{" _ FlowControlStatement* _ "}"
 
 FunctionBlock = "{" _ FunctionStatement* _ "}"
 
+FunFlowControlBlock = "{" _ FunctionFlowControlStatement* _ "}"
+
 Block 
   = "{" _ Statement* _ "}"
 
 DeclarativeStatement
-  = Types _ Id _ ("=" _ Expression _)? ";"
-  / "var" _ Id _ "=" _ Expression _ ";"
+  = "var" _ Id _ "=" _ Expression _ ";"
+  / Id _ Id _ ("=" _ Expression _)? ";"
 
 Expression 
   = Assignment
