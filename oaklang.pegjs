@@ -20,7 +20,11 @@ Expression
   = Assignment
 
 Assignment
-  = Id _ operator:("="/ "+=" / "-=") _ Assignment
+  = Id _ operator:("+=" / "-="/ "=") _ Assignment
+  / Equality
+
+Logical
+  = Equality _ ("&&"/"||") _ Logical
   / Equality
 
 Equality
@@ -28,7 +32,7 @@ Equality
   / Comparisson
 
 Comparisson
-  = Additive _ (">" / ">=" / "<" / "<=") Comparisson
+  = Additive _ (">=" / ">" / "<=" / "<") _ Comparisson
   / Additive
 
 Additive
@@ -42,6 +46,7 @@ Multiplicative
 Unary
   = "-" Primary 
   / Primary
+
 
 Primary
   = Number
