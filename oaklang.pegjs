@@ -85,13 +85,13 @@ Block
 
 DeclarativeStatement
   = "var" _ Id _ "=" _ Expression _ ";"
-  / Id _ Id _ ("=" _ Expression _)? ";"
+  / Id _ ("[" _ "]")? _ Id _ ("=" _ Expression _)? _ ";"
 
 Expression 
   = Assignment
 
 Assignment
-  = Id _ operator:("+=" / "-="/ "=") _ Assignment
+  = Call _ operator:("+=" / "-="/ "=") _ Assignment
   / Ternary
 
 Ternary 
@@ -122,8 +122,8 @@ Unary
   = ("-"/"!") Unary 
   / Call
 
-Call = Id _ ("(" _ Arguments? _")")*
-  / Primary
+Call 
+  = Primary _ ("(" _ Arguments? _")"/ ("[" _ index:[0-9]+ _"]")* )?
 
 Arguments = Expression _ ("," _ Expression)*
 
