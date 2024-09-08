@@ -1,5 +1,7 @@
 File 
-  = _ statements:Statement* _
+  = _ (statements:Statement/ struct:Struct)* _
+
+Struct = "struct" _ Id _ "{" _ (Id _ Id _ ";" _)+ _ "}"
 
 Statement
   = nonDeclarativeStatment: NonDeclarativeStatement _
@@ -123,7 +125,7 @@ Unary
   / Call
 
 Call 
-  = Primary _ ("(" _ Arguments? _")"/ ("[" _ index:[0-9]+ _"]" / "." _ Id)* )?
+  = Primary _ ("(" _ Arguments? _")"/"[" _ index:[0-9]+ _"]" / "." _ Id)*
 
 Arguments = Expression _ ("," _ Expression)*
 
@@ -132,7 +134,9 @@ Primary
   / Primitve
   / "(" _ additive:Expression _ ")"
   / "null"
-  / Id
+  / Id _ ( "{" _ StructArg _ "}")?
+
+StructArg = Id _ ":" _ Expression (_ "," _ StructArg)*
 
 Primitve 
   = String
