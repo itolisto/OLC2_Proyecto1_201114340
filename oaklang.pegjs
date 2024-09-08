@@ -85,7 +85,7 @@ Block
 
 DeclarativeStatement
   = "var" _ Id _ "=" _ Expression _ ";"
-  / Id _ ("[" _ "]")? _ Id _ ("=" _ Expression _)? _ ";"
+  / Id _ ("[" _ "]")* _ Id _ ("=" _ Expression _)? _ ";"
 
 Expression 
   = Assignment
@@ -123,7 +123,7 @@ Unary
   / Call
 
 Call 
-  = Primary _ ("(" _ Arguments? _")"/ ("[" _ index:[0-9]+ _"]")* )?
+  = Primary _ ("(" _ Arguments? _")"/ ("[" _ index:[0-9]+ _"]" / "." _ Id)* )?
 
 Arguments = Expression _ ("," _ Expression)*
 
@@ -138,6 +138,7 @@ Primitve
   = String
   / Boolean
   / Char
+  / Array
 
 String
   = "\"" (!["'].)* "\""  
@@ -145,6 +146,8 @@ String
 Boolean = "True" / "False"
 
 Char = "'" (!["'].)? "'"
+
+Array = "{" _ Primary? (_ "," _ Primary )* _ "}"
 
 Number 
   = Float
