@@ -21,7 +21,11 @@ Expression
 
 Assignment
   = Id _ operator:("+=" / "-="/ "=") _ Assignment
-  / Equality
+  / Ternary
+
+Ternary 
+  = Logical _ "?" _ Ternary _ ":" _ Ternary
+  / Logical
 
 Logical
   = Equality _ ("&&"/"||") _ Logical
@@ -44,9 +48,8 @@ Multiplicative
   / Unary
 
 Unary
-  = "-" Primary 
+  = ("-"/"!") Primary 
   / Primary
-
 
 Primary
   = Number
