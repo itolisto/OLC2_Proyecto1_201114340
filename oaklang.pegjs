@@ -20,8 +20,8 @@ Expression
   = Assignment
 
 Assignment
-  = Id _ "=" _ Assignment
-  / Additive;
+  = Id _ operator:("="/ "+=" / "-=") _ Assignment
+  / Additive
 
 Additive
   = left:Multiplicative _ operator:FirstBinaryOperator _ right:Additive
@@ -36,6 +36,7 @@ Primary
   / Primitve
   / "(" _ additive:Expression _ ")"
   / "null"
+  / Id
 
 Primitve 
   = String
