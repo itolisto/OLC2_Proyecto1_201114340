@@ -43,7 +43,7 @@ String
 
 Boolean = "True" / "False"
 
-Char = "'" character:.? "'"
+Char = "'" (!["'].)? "'"
 
 Number 
   = Float
