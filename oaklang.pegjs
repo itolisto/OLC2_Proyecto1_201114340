@@ -151,7 +151,9 @@ Boolean = "True" / "False"
 
 Char = "'" (!["'].)? "'"
 
-Array = "{" _ Primary? (_ "," _ Primary )* _ "}"
+Array 
+  = "{" _ Primary? (_ "," _ Primary )* _ "}"
+  / "new" _ Id _ ("[" _ index:[0-9]+ _"]")+
 
 Number 
   = Float
@@ -180,8 +182,8 @@ FTypes
 
 Comment 
   = 
-  "//" .*
-  / "/*" [.\n]* "*/"
+  "//" (![\n].)*
+  / "/*" (!("*/").)* "*/"
 
 _ "whitespace"
-  = [ \t\n\r]*
+  = (Comment / [ \t\n\r])*
