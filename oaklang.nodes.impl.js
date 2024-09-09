@@ -46,6 +46,7 @@ export class Type extends Statement {
     }
 }
 
+
 export class Break extends Statement {
     constructor() {
         super()
@@ -128,6 +129,7 @@ export class GetIndex extends Statement {
     }
 }
 
+
 export class StructInstance extends Statement {
     constructor({ name, args }) {
         super()
@@ -136,8 +138,16 @@ export class StructInstance extends Statement {
         console.log(name)
         console.log(args)
     }
-}
+}       
 
+export class Parenthesis extends Statement {
+    constructor({ expression }) {
+        super()
+        this.expression = expression
+        console.log(expression)
+    }
+}
+        
 export default {
     Struct,
     Function,
@@ -153,4 +163,5 @@ export default {
     FunctionCall,
     GetIndex,
     StructInstance,
+    Parenthesis
 }
