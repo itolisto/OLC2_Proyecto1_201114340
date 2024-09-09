@@ -184,6 +184,16 @@ export class Unary extends Statement {
     }
 }
 
+export class Literal extends Statement {
+    constructor({ type, value }) {
+        super()
+        this.type = type
+        this.value = value
+        console.log(type)
+        console.log(value)
+    }
+}
+
 export default {
     Struct,
     Function,
@@ -197,10 +207,10 @@ export default {
     GetVar,
     GetProperty,
     FunctionCall,
-    // GetIndex,
     StructInstance,
     Parenthesis,
     Ternary,
     Binary,
-    Unary
+    Unary,
+    Literal
 }

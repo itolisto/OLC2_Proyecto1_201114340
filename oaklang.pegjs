@@ -18,6 +18,7 @@
       'ternary': nodes.Ternary,
       'binary': nodes.Binary,
       'unary': nodes.Unary,
+      'literal': nodes.Literal,
     }
 
     const node = new types[nodeType](properties)
@@ -200,7 +201,13 @@ Call
      )
     }
 
-ArrayIndex = "[" _ index:Integer _"]" { return { index } }
+ArrayIndex = "[" _ index:Number _"]" { 
+    if (index.type != 'integer') {
+      const loc = location()
+      throw new Error('Invalind index ' + index.value +  ' at line ' + loc.start.line + ' column ' + loc.start.column)
+    }
+    return { index: index.value } 
+  }
 
 Arguments = Expression _ ("," _ Expression)* // { return createNode('', {  }) }
 
@@ -229,8 +236,7 @@ TypeOf = "typeof" _ Expression _ // { return createNode('', {  }) }
 StructArg = Type _ ":" _ Expression (_ "," _ StructArg)* // { return createNode('', {  }) }
 
 Primitve 
-  = 
-  Number { return createNode('', {  }) }
+  = Number
   / String
   / Boolean
   / Char
@@ -248,19 +254,14 @@ Array
   / "new" _ Id _ ("[" _ index:[0-9]+ _"]")+ // { return createNode('', {  }) }
 
 Number 
-  = whole:[0-9]+decimal:("."[0-9]+)? { 
-      if(decimal) {
-        return createNode('literal', { type: 'float', value: "float"parseFloat(whole.join("")+"."+decimals.join(""), 10) })
-      }
-
-      // return createNode('', {  })
+  = whole:[0-9]+decimal:("."[0-9]+)? {
+      return createNode(
+          'literal', 
+          decimal 
+            ? { type: 'float', value: parseFloat(whole.join("")+decimal.flatMap(n => n).join(""), 10) }
+            : { type: "integer", value: parseInt(whole.join(""), 10) }
+        )
     }
-
-Integer "Integer"
-  = digits:[0-9]+ { return { type: "integer", value: parseInt(digits.join(""), 10)} }
-
-Float "float"
-  = _ whole:[0-9]+"."decimals:[0-9]+ { return { type: } }
 
 FirstBinaryOperator = "+"/ "-"
 
