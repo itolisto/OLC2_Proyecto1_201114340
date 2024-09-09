@@ -129,6 +129,7 @@ export class GetIndex extends Statement {
     }
 }
 
+
 export class StructInstance extends Statement {
     constructor({ name, args }) {
         super()
@@ -138,6 +139,7 @@ export class StructInstance extends Statement {
         console.log(args)
     }
 }
+        
 
 export class Parenthesis extends Statement {
     constructor({ expression }) {
@@ -146,7 +148,7 @@ export class Parenthesis extends Statement {
         console.log(expression)
     }
 }
-
+        
 export class Ternary extends Statement {
     constructor({ logicalExpression, nonDeclStatementTrue, nonDeclStatementFalse }) {
         super()
@@ -159,6 +161,7 @@ export class Ternary extends Statement {
     }
 }
 
+
 export class Binary extends Statement {
     constructor({ operator, left, right }) {
         super()
@@ -167,6 +170,16 @@ export class Binary extends Statement {
         this.right = right 
         console.log(operator)
         console.log(left)
+        console.log(right)
+    }
+}
+
+export class Unary extends Statement {
+    constructor({ operator, right }) {
+        super()
+        this.operator = operator 
+        this.right = right
+        console.log(operator)
         console.log(right)
     }
 }
@@ -188,5 +201,6 @@ export default {
     StructInstance,
     Parenthesis,
     Ternary,
-    Binary
+    Binary,
+    Unary
 }
