@@ -65,3 +65,15 @@ export class Return extends Statement {
         console.log(expression)
     }
 }
+
+export class VarAssign extends Statement {
+    constructor(assignee, operator, assignment) {
+        super()
+        this.assignee = assignee
+        this.operator = operator
+        this.assignment = assignment
+        console.log(assignee)
+        console.log(operator)
+        console.log(assignment)
+    }
+}
