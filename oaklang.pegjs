@@ -91,9 +91,9 @@ Parameter = type:Type _ id:Id { return createNode('funParameter', { type, id }) 
 
 TransferStatement
   = "break" _ ";" { return createNode('break') }
-  / "continue" _ ";" //{ return createNode('', {  }) }
+  / "continue" _ ";" { return createNode('continue') }
 
-Return = "return" _ Expression? _ ";" // { return createNode('', {  }) }
+Return = "return" _ expression:Expression? _ ";" { return createNode('return', { expression }) }
 
 FunFlowControl
   = "if" _ "(" _ Expression _ ")" _ FunFlowControlInsideStatement (_ "else " _ FunFlowControlInsideStatement )? // { return createNode('', {  }) }

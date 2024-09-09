@@ -46,9 +46,14 @@ export class Type extends Statement {
     }
 }
 
-export default {
-    Struct,
-    Function,
-    Parameter,
-    Type
+export class Break extends Statement {
+    constructor() {
+        super()
+    }
+}
+
+export class Continue extends Statement {
+    constructor() {
+        super()
+    }
 }
