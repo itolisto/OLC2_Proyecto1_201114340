@@ -2,7 +2,8 @@
   const createNode = (nodeType, properties) => {
     const types = {
       'struct': nodes.Struct,
-      'function': nodes.Function
+      'function': nodes.Function,
+      'parameter': nodes.Parameter
       // 'literal': nodes.LiteralExpression,
       // 'unary': nodes.UnaryExpresion ,
       // 'binary': nodes.BinaryExpresion,
@@ -85,7 +86,7 @@ Function = returnType:Type _ id:Id _ "("
     _ params:( paramLeft: Parameter (_ "," _ paramsRight:Parameter { return paramsRight })*  { return [paramLeft, ...paramsRight] } )? 
    _ ")" _ body:FunctionBlock { return createNode('function', { returnType, params, body}) }
 
-Parameter = Type _ Id
+Parameter = type:Type _ id:Id { return createNode('funParameter', { type, id }) }
 
 TransferStatement
   = "break" _ ";"
