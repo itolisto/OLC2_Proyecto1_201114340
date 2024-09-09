@@ -46,6 +46,7 @@ export class Type extends Statement {
     }
 }
 
+
 export class Break extends Statement {
     constructor() {
         super()
@@ -131,6 +132,7 @@ export class FunctionCall extends Statement {
 //     }
 // }
 
+
 export class StructInstance extends Statement {
     constructor({ name, args }) {
         super()
@@ -140,6 +142,7 @@ export class StructInstance extends Statement {
         console.log(args)
     }
 }
+        
 
 export class Parenthesis extends Statement {
     constructor({ expression }) {
@@ -173,6 +176,7 @@ export class Binary extends Statement {
         console.log(right)
     }
 }
+
 
 export class Unary extends Statement {
     constructor({ operator, right }) {
@@ -213,4 +217,13 @@ export default {
     Binary,
     Unary,
     Literal
+}
+
+export class StructArg extends Statement {
+    constructor({ id, expression }) {
+        super()
+        this.id = id
+        this.expression = expression
+        console.log(id + '' + expression)
+    }
 }
