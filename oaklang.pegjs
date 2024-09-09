@@ -193,11 +193,11 @@ Call
             case 'functionCall':
               { return createNode('functionCall', { callee: prevCallee, args: args || []}) } 
             case 'getProperty':
-              { return createNode('getProperty', { callee: prevCallee, name: property, indexes }) } 
+              { return createNode('getProperty', { callee: prevCallee, name: property, indexes: indexes.map(entry => entry.index) }) } 
           }
         },
         callee
-      )
+     )
     }
 
 ArrayIndex = "[" _ index:Integer _"]" { return { index } }
@@ -205,20 +205,23 @@ ArrayIndex = "[" _ index:Integer _"]" { return { index } }
 Arguments = Expression _ ("," _ Expression)* // { return createNode('', {  }) }
 
 Primary
-  = Number // { return createNode('', {  }) }
-  / Primitve // { return createNode('', {  }) }
+  = Primitve // { return createNode('', {  }) }
   / "(" _ expression:Expression _ ")" { return createNode('parenthesis', { expression }) }
   / "null" // { return createNode('', {  }) }
   / "typeof" _ Expression _ // { return createNode('', {  }) }
   / name:Id _ action:( 
-      "{" _ args:StructArg _ "}" { return args }
-      // / ArrayIndex
+      "{" _ args:StructArg _ "}" { return { type: 'constructor', args } }
+      / _ indexes:ArrayIndex* { return { type: 'getArray', indexes: indexes.map(entry => entry.index) } }
     )? {
-      if (constructor) {
-        return createNode('structInstance', { name, args: constructor.args })   
+      const { type, args, indexes } = action
+      if (type == 'constructor') {
+        return createNode('structInstance', { name, args })   
       }
-      // else is a var refercne
-      return createNode('getVar', { name }) 
+
+      if (type == 'getArray'){
+        // else is a var refercne
+        return createNode('getVar', { name, indexes }) 
+      }
     }
 
 TypeOf = "typeof" _ Expression _ // { return createNode('', {  }) }
@@ -226,7 +229,9 @@ TypeOf = "typeof" _ Expression _ // { return createNode('', {  }) }
 StructArg = Type _ ":" _ Expression (_ "," _ StructArg)* // { return createNode('', {  }) }
 
 Primitve 
-  = String
+  = 
+  Number { return createNode('', {  }) }
+  / String
   / Boolean
   / Char
   / Array
@@ -243,14 +248,19 @@ Array
   / "new" _ Id _ ("[" _ index:[0-9]+ _"]")+ // { return createNode('', {  }) }
 
 Number 
-  = Float
-  / Integer
+  = whole:[0-9]+decimal:("."[0-9]+)? { 
+      if(decimal) {
+        return createNode('literal', { type: 'float', value: "float"parseFloat(whole.join("")+"."+decimals.join(""), 10) })
+      }
+
+      // return createNode('', {  })
+    }
 
 Integer "Integer"
-  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
+  = digits:[0-9]+ { return { type: "integer", value: parseInt(digits.join(""), 10)} }
 
 Float "float"
-  = _ whole:[0-9]+"."decimals:[0-9]+ { return parseFloat(whole.join("")+"."+decimals.join(""), 10); }
+  = _ whole:[0-9]+"."decimals:[0-9]+ { return { type: } }
 
 FirstBinaryOperator = "+"/ "-"
 
