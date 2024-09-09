@@ -67,7 +67,7 @@ export class Return extends Statement {
 }
 
 export class VarAssign extends Statement {
-    constructor(assignee, operator, assignment) {
+    constructor({ assignee, operator, assignment }) {
         super()
         this.assignee = assignee
         this.operator = operator
@@ -76,4 +76,81 @@ export class VarAssign extends Statement {
         console.log(operator)
         console.log(assignment)
     }
+}
+
+export class SetProperty extends Statement {
+    constructor({ assignee, operator, assignment }) {
+        super()
+        this.assignee = assignee
+        this.operator = operator
+        this.assignment = assignment 
+        console.log(assignee)
+        console.log(operator)
+        console.log(assignment)
+    }
+}
+
+export class VarReference extends Statement {
+    constructor({ name }) {
+        super()
+        this.name = name
+        console.log(name)
+    }
+}
+
+export class GetProperty extends Statement {
+    constructor({ callee, name }) {
+        super()
+        this.callee = callee
+        this.name = name
+        console.log(callee)
+        console.log(name)
+    }
+}
+
+export class FunctionCall extends Statement {
+    constructor({ callee, args}) {
+        super()
+        this.callee = callee
+        this.args = args
+        console.log(callee)
+        console.log(args)
+    }
+}
+
+export class GetIndex extends Statement {
+    constructor({ callee, indexes }) {
+        super()
+        this.callee = callee
+        this.indexes = indexes
+        console.log(callee)
+        console.log(indexes)
+    }
+}
+
+export class StructInstance extends Statement {
+    constructor({ name, args }) {
+        super()
+        this.name = name
+        this.argg = args
+        console.log(name)
+        console.log(args)
+    }
+}
+
+export default {
+    Struct,
+    Function,
+    Parameter,
+    Type,
+    Break,
+    Continue,
+    Return,
+    VarAssign,
+    SetProperty,
+    VarReference,
+    GetProperty,
+    FunctionCall,
+    GetIndex,
+    StructInstance,
 }
