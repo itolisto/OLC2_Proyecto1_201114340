@@ -34,3 +34,13 @@ export class Parameter extends Statement {
         console.log(id)
     }
 }
+
+export class Type extends Statement {
+    constructor({ type, arrayLevel }) {
+        super()
+        this.type = type
+        this.arrayLevel = arrayLevel
+        console.log(type)
+        console.log(arrayLevel)
+    }
+}
