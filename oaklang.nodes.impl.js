@@ -57,3 +57,11 @@ export class Continue extends Statement {
         super()
     }
 }
+
+export class Return extends Statement {
+    constructor({ expression }) {
+        super()
+        this.expression = expression
+        console.log(expression)
+    }
+}
