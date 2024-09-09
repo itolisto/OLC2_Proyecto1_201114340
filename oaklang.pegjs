@@ -10,10 +10,9 @@
       'return': nodes.Return,
       'varAssign': nodes.VarAssign,
       'setProperty': nodes.SetProperty,
-      'varReference': nodes.VarReference,
+      'getVar': nodes.GetVar,
       'getProperty': nodes.GetProperty,
       'functionCall': nodes.FunctionCall,
-      'getIndex': nodes.GetIndex,
       'structInstance': nodes.StructInstance,
       'parenthesis': nodes.Parenthesis,
       'ternary': nodes.Ternary,
@@ -128,8 +127,8 @@ Assignment
       return assignments.reduce(
         (prevAssignee, currentAssignee) => {
           const {operator, assignment} = currentAssignee
-          first iteration IFs
-          if(prevAssignee instanceof nodes.VarReference) 
+          // first iteration IFs
+          if(prevAssignee instanceof nodes.GetVar) 
             return createNode('varAssign', { assignee: prevAssignee, operator, assignment })
           if(prevAssignee instanceof nodes.GetProperty)
             return createNode('setProperty', { assignee: prevAssignee, operator, assignment })
@@ -137,7 +136,7 @@ Assignment
           // recursive assignment IFs
           if(prevAssignee instanceof nodes.VarAssign || prevAssignee instanceof nodes.GetProperty) {
             const prevAssignment = prevAssignee.assigment
-            if ((prevAssignment instanceof nodes.VarReference))
+            if ((prevAssignment instanceof nodes.GetVar))
               return createNode('varAssign', { assignee: prevAssignee, operator, assignment })
             if ((prevAssignment instanceof nodes.GetProperty))
               return createNode('setProperty', { assignee: prevAssignee, operator, assignment })
@@ -182,27 +181,29 @@ Unary
 Call 
   = callee:Primary _ actions:(
       "(" _ args:Arguments? _")" { return { type: 'functionCall', args } }
-      /"[" _ indexes:[0-9]+ _"]" { return { type: 'getIndex', indexes } }
-      / "." _ property:Id { return { type: 'getProperty', property } }
+      // / ArrayIndex
+      // / "." _ property:Id indexes:( _ arrayIndex:ArrayIndex { return { deep: arrayIndex.indexes } })* { return { type: 'getProperty', property, indexes: indexes.deep } }
     )* { 
-      // if (!(callee instanceof nodes.Parenthesis || callee instanceof nodes.VarReference) && actions.lenght > 0) 
-      //   throw new Error('illegal ' + actions.type + ' call  at line ' + location.start.line + ' column ' + location.start.column')
+      if (!(callee instanceof nodes.Parenthesis || callee instanceof nodes.GetVar) && actions.length > 0) 
+        throw new Error('illegal ' + actions.type + ' call  at line ' + location.start.line + ' column ' + location.start.column)
 
-      actions.reduce(
+      return actions.reduce(
         (prevCallee, currentAction) => {
-          const {type, args, indexes, property} = currentAction
+          const {type, args, indexes, property } = currentAction
           switch (type) {
             case 'functionCall':
               { return createNode('functionCall', { callee: prevCallee, args: args || []}) } 
-            case 'getIndex':
-              { return createNode('getIndex', { callee: prevCallee, indexes }) } 
+            // case 'getIndex':
+            //   { return createNode('getIndex', { callee: prevCallee, indexes }) } 
             case 'getProperty':
-              { return createNode('getProperty', { callee: prevCallee, name: property }) } 
+              // { return createNode('getProperty', { callee: prevCallee, name: property, indexes }) } 
           }
         },
         callee
       )
     }
+
+// ArrayIndex = "[" _ indexes:[0-9]+ _"]" { return { type: 'getIndex', indexes } }
 
 Arguments = Expression _ ("," _ Expression)* // { return createNode('', {  }) }
 
@@ -217,7 +218,7 @@ Primary
         return createNode('StructInstance', { name, args: constructor.args })   
       }
       // else is a var refercne
-      return createNode('varReference', { name }) 
+      return createNode('getVar', { name }) 
     }
 
 TypeOf = "typeof" _ Expression _ // { return createNode('', {  }) }
@@ -256,7 +257,7 @@ FirstBinaryOperator = "+"/ "-"
 SecondBinaryOperator = "*"/ "/"/ "%"
 
 Id 
-  = id:[_a-zA-Z][0-9a-zA-Z_]* { return text() }
+  = [_a-zA-Z][0-9a-zA-Z_]* { return text() }
 
 Type = type:Id _ arrayLevel:("[" _ "]")* { return createNode('type', { type, arrayLevel }) }
 

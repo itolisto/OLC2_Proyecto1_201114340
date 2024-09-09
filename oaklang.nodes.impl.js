@@ -46,7 +46,6 @@ export class Type extends Statement {
     }
 }
 
-
 export class Break extends Statement {
     constructor() {
         super()
@@ -91,7 +90,7 @@ export class SetProperty extends Statement {
     }
 }
 
-export class VarReference extends Statement {
+export class GetVar extends Statement {
     constructor({ name }) {
         super()
         this.name = name
@@ -100,12 +99,14 @@ export class VarReference extends Statement {
 }
 
 export class GetProperty extends Statement {
-    constructor({ callee, name }) {
+    constructor({ callee, name , indexes }) {
         super()
         this.callee = callee
         this.name = name
+        this.indexes = indexes
         console.log(callee)
         console.log(name)
+        console.log(indexes)
     }
 }
 
@@ -119,16 +120,15 @@ export class FunctionCall extends Statement {
     }
 }
 
-export class GetIndex extends Statement {
-    constructor({ callee, indexes }) {
-        super()
-        this.callee = callee
-        this.indexes = indexes
-        console.log(callee)
-        console.log(indexes)
-    }
-}
-
+// export class GetIndex extends Statement {
+//     constructor({ callee, indexes }) {
+//         super()
+//         this.callee = callee
+//         this.indexes = indexes
+//         console.log(callee)
+//         console.log(indexes)
+//     }
+// }
 
 export class StructInstance extends Statement {
     constructor({ name, args }) {
@@ -139,7 +139,6 @@ export class StructInstance extends Statement {
         console.log(args)
     }
 }
-        
 
 export class Parenthesis extends Statement {
     constructor({ expression }) {
@@ -194,10 +193,10 @@ export default {
     Return,
     VarAssign,
     SetProperty,
-    VarReference,
+    GetVar,
     GetProperty,
     FunctionCall,
-    GetIndex,
+    // GetIndex,
     StructInstance,
     Parenthesis,
     Ternary,
