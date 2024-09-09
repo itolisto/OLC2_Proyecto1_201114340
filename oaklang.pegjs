@@ -210,13 +210,13 @@ ArrayIndex = "[" _ index:Number _"]" {
     return { index: index.value } 
   }
 
-Arguments = Expression _ ("," _ Expression)* // { return createNode('', {  }) }
+Arguments = Expression _ ("," _ Expression)* { return createNode('funArgs', {  }) }
 
 Primary
-  = Primitve // { return createNode('', {  }) }
+  = Primitve
   / "(" _ expression:Expression _ ")" { return createNode('parenthesis', { expression }) }
-  / "null" // { return createNode('', {  }) }
-  / "typeof" _ Expression _ // { return createNode('', {  }) }
+  / "null" // TODO { return createNode('', {  }) }
+  / "typeof" _ Expression _ // TODO { return createNode('', {  }) }
   / name:Id _ action:( 
       "{" _ args:StructArg _ "}" { return { type: 'constructor', args } }
       / _ indexes:ArrayIndex* { return { type: 'getArray', indexes: indexes.map(entry => entry.index) } }
@@ -236,7 +236,7 @@ TypeOf = "typeof" _ Expression _ // { return createNode('', {  }) }
 
 StructArg = id:Id _ ":" _ expression:Expression args:(_ "," _ arg:StructArg { return arg } )* { 
   const enforcedArg = createNode('structArg', { id, expression }) 
-  return [enforcedArg, ...args]
+  return [enforcedArg, ...args].flatMap(arg => arg)
 }
 
 Primitve 
@@ -254,8 +254,8 @@ Boolean = value:("true" / "false") { return createNode('literal', { type: 'boole
 Char = "'" character:(!["'].)? "'" { return createNode('literal', { type: 'char', value: character.flatMap(s => s).join("") }) } 
 
 Array 
-  = "{" _ Primary? (_ "," _ Primary )* _ "}" // { return createNode('', {  }) }
-  / "new" _ Id _ ("[" _ index:[0-9]+ _"]")+ // { return createNode('', {  }) }
+  = "{" _ Primary? (_ "," _ Primary )* _ "}" // TODO { return createNode('', {  }) }
+  / "new" _ Id _ ("[" _ index:[0-9]+ _"]")+ // TODO { return createNode('', {  }) }
 
 Number 
   = whole:[0-9]+decimal:("."[0-9]+)? {
@@ -263,7 +263,7 @@ Number
           'literal', 
           decimal 
             ? { type: 'float', value: parseFloat(whole.join("")+decimal.flatMap(n => n).join(""), 10) }
-            : { type: "integer", value: parseInt(whole.join(""), 10) }
+            : { type: 'integer', value: parseInt(whole.join(""), 10) }
         )
     }
 

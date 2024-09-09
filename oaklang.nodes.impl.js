@@ -137,7 +137,7 @@ export class StructInstance extends Statement {
     constructor({ name, args }) {
         super()
         this.name = name
-        this.argg = args
+        this.args = args
         console.log(name)
         console.log(args)
     }
@@ -198,6 +198,16 @@ export class Literal extends Statement {
     }
 }
 
+
+export class StructArg extends Statement {
+    constructor({ id, expression }) {
+        super()
+        this.id = id
+        this.expression = expression
+        console.log(id + '' + expression)
+    }
+}
+
 export default {
     Struct,
     Function,
@@ -216,14 +226,6 @@ export default {
     Ternary,
     Binary,
     Unary,
-    Literal
-}
-
-export class StructArg extends Statement {
-    constructor({ id, expression }) {
-        super()
-        this.id = id
-        this.expression = expression
-        console.log(id + '' + expression)
-    }
+    Literal,
+    StructArg
 }
