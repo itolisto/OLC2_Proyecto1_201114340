@@ -147,6 +147,18 @@ export class Parenthesis extends Statement {
         console.log(expression)
     }
 }
+
+export class Ternary extends Statement {
+    constructor({ logicalExpression, nonDeclStatementTrue, nonDeclStatementFalse }) {
+        super()
+        this.logicalExpression = logicalExpression
+        this.nonDeclStatementTrue = nonDeclStatementTrue
+        this.nonDeclStatementFalse = nonDeclStatementFalse
+        console.log(logicalExpression)
+        console.log(nonDeclStatementTrue)
+        console.log(nonDeclStatementFalse)
+    }
+}
         
 export default {
     Struct,
@@ -163,5 +175,6 @@ export default {
     FunctionCall,
     GetIndex,
     StructInstance,
-    Parenthesis
+    Parenthesis,
+    Ternary
 }
