@@ -8,7 +8,7 @@
       'break': nodes.Break,
       'continue': nodes.Continue,
       'return': nodes.Return,
-      'varAssign': nodes.VarAssign,
+      'setVar': nodes.SetVar,
       'setProperty': nodes.SetProperty,
       'getVar': nodes.GetVar,
       'getProperty': nodes.GetProperty,
@@ -129,15 +129,15 @@ Assignment
           const {operator, assignment} = currentAssignee
           // first iteration IFs
           if(prevAssignee instanceof nodes.GetVar) 
-            return createNode('varAssign', { assignee: prevAssignee, operator, assignment })
+            return createNode('setVar', { assignee: prevAssignee, operator, assignment })
           if(prevAssignee instanceof nodes.GetProperty)
             return createNode('setProperty', { assignee: prevAssignee, operator, assignment })
 
           // recursive assignment IFs
-          if(prevAssignee instanceof nodes.VarAssign || prevAssignee instanceof nodes.GetProperty) {
+          if(prevAssignee instanceof nodes.SetVar || prevAssignee instanceof nodes.GetProperty) {
             const prevAssignment = prevAssignee.assigment
             if ((prevAssignment instanceof nodes.GetVar))
-              return createNode('varAssign', { assignee: prevAssignee, operator, assignment })
+              return createNode('setVar', { assignee: prevAssignee, operator, assignment })
             if ((prevAssignment instanceof nodes.GetProperty))
               return createNode('setProperty', { assignee: prevAssignee, operator, assignment })
           } 
@@ -203,7 +203,7 @@ Call
       )
     }
 
-// ArrayIndex = "[" _ indexes:[0-9]+ _"]" { return { type: 'getIndex', indexes } }
+ArrayIndex = "[" _ indexes:[0-9]+ _"]" { return { type: 'getIndex', indexes } }
 
 Arguments = Expression _ ("," _ Expression)* // { return createNode('', {  }) }
 
