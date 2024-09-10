@@ -20,11 +20,23 @@
       'unary': nodes.Unary,
       'literal': nodes.Literal,
       'structArg': nodes.StructArg,
+      'funArgs': nodes.FunArgs,
+      'varDecl': nodes.VarDecl,
+      'varDefinition': nodes.VarDefinition,
+      'block': nodes.Block,
+      'forEach': nodes.ForEach,
+      'for': nodes.For,
     }
 
-    const node = new types[nodeType](properties)
-    node.location = location()  // location() is a peggy function that indicates where this node is in the source code
-    return node
+
+    try {
+      const node = new types[nodeType](properties)
+    // node.location = location()  // location() is a peggy function that indicates where this node is in the source code
+    return node 
+    } catch (error) {
+      console.log(error)
+    }
+    
   }
 }
 
@@ -34,19 +46,22 @@ File
 Struct = "struct" _ structName:Id _ "{" _ props:( type:Id _ name:Id _ ";" _ { return { type, name } })+ _ "}" _ { return createNode('struct', { structName, props }) }
 
 Statement
-  = nonDeclarativeStatement: NonDeclarativeStatement _ { return nonDeclarativeStatement }
-  / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+  = declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+  / nonDeclarativeStatement: NonDeclarativeStatement _ { return nonDeclarativeStatement }
 
 FlowControlStatement
-	= nonDeclarativeStatement: FControlInsideStatement _ { return nonDeclarativeStatement }
-    / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+	= declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+  / nonDeclarativeStatement: FControlInsideStatement _ { return nonDeclarativeStatement }
 
 FunctionStatement
-	= nonDeclarativeStatement: FStatement _ { return nonDeclarativeStatement }
-    / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+	= Return
+  / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+  / nonDeclarativeStatement: FStatement _ { return nonDeclarativeStatement }
  
-FunctionFlowControlStatement = nonDeclarativeStatement: FunFlowControlInsideStatement _ { return nonDeclarativeStatement }
-    / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+FunctionFlowControlStatement 
+  = Return
+  / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
+  / nonDeclarativeStatement: FunFlowControlInsideStatement _ { return nonDeclarativeStatement }
 
 NonDeclarativeStatement
   = Block
@@ -55,9 +70,9 @@ NonDeclarativeStatement
   / FlowControl
 
 FControlInsideStatement 
-  = FunFlowControlBlock 
+  = FlowControlBlock 
   / TransferStatement 
-  / Expression _ ";" { return expression }
+  / expression:Expression _ ";" { return expression }
   / Function
   / FlowControl
 
@@ -65,22 +80,23 @@ FunFlowControlInsideStatement
   = FunFlowControlBlock 
   / TransferStatement
   / Return
-  / Expression _ ";" { return expression }
+  / expression:Expression _ ";" { return expression }
   / Function
   / FlowControl
 
 FStatement
-  =  FunctionBlock 
-  / Return
-  / Expression _ ";" { return expression }
+  =  FunctionBlock
+  / expression:Expression _ ";" { return expression }
   / Function
   / FunFlowControl
 
 Function = returnType:Type _ id:Id _ "("
-    _ params:( paramLeft: Parameter (_ "," _ paramsRight:Parameter { return paramsRight })*  { return [paramLeft, ...paramsRight] } )? 
-   _ ")" _ body:FunctionBlock { return createNode('function', { returnType, id, params: params || [], body}) }
+    _ params:( paramLeft: Parameter paramsRight:(_ "," _ paramsRight:Parameter { return paramsRight })*  { return [paramLeft, ...paramsRight] } )? 
+    _ ")" _ body:FunctionBlock { 
+      return createNode('function', { returnType, id, params: params || [], body}) 
+    }
 
-Parameter = type:Type _ id:Id { return createNode('funParameter', { type, id }) }
+Parameter = type:Type _ id:Id { return createNode('parameter', { type, id }) }
 
 TransferStatement
   = "break" _ ";" { return createNode('break') }
@@ -95,8 +111,22 @@ FunFlowControl
   / ForFunVariation
 
 ForFunVariation
-  =  "for" _ "(" _ (DeclarativeStatement/ Expression _ ";")? _ Expression? _ ";" _ Expression? _ ")" _ FunFlowControlInsideStatement // { return createNode('', {  }) }
-  / "for" _ "(" _ (Type / "var") _ Id _ ":" _ Id _")" _ FunFlowControlInsideStatement // { return createNode('', {  }) }
+  = "for" _ "(" 
+      _ variable:(
+          dcl:DeclarativeStatement { return dcl }
+          / dcl:Expression _ ";" { return dcl }
+          / _ ";" { return 'empty'}
+        )
+      _ condition:Expression? _ ";"
+      _ updateExpression:Expression? _ 
+      ")" 
+      _ body:FunFlowControlInsideStatement { 
+      return createNode('for', { variable: variable != 'empty' ? variable : null, condition, updateExpression, body }) 
+    }
+  / "for" _ "(" _ decl:(type:"var"/ type:Type) _ varName:Id _ ":" _ arrayRef: Expression _")" _ statements:FunFlowControlInsideStatement {
+      const varType = decl != "var" ? decl : undefined
+      return createNode('forEach', { varType  , varName , arrayRef, statements }) 
+    } // TODO in interpreter we need to see if statement is of type null or just var or property reference
 
 FlowControl
   = "if" _ "(" _ Expression _ ")" _ FControlInsideStatement (_ "else " _ FControlInsideStatement)? // { return createNode('', {  }) }
@@ -105,21 +135,41 @@ FlowControl
   / ForVariation
 
 ForVariation
-  =  "for" _ "(" _ (DeclarativeStatement/ Expression _ ";")? _ Expression? _ ";" _ Expression? _ ")" _ FControlInsideStatement // { return createNode('', {  }) }
-  / "for" _ "(" _ (Type / "var") _ Id _ ":" _ Id _")" _ FControlInsideStatement // { return createNode('', {  }) }
+  = "for" _ "(" 
+      _ variable:(
+          dcl:DeclarativeStatement { return dcl }
+          / dcl:Expression _ ";" { return dcl }
+          / _ ";" { return 'empty'}
+        )
+      _ condition:Expression? _ ";"
+      _ updateExpression:Expression? _ 
+      ")" 
+      _ body:FControlInsideStatement { 
+      return createNode('for', { variable: variable != 'empty' ? variable : null, condition, updateExpression, body }) 
+    }
+  / "for" _ "(" _ decl:(type:"var"/ type:Type) _ varName:Id _ ":" _ arrayRef: Expression _")" _ statements:FControlInsideStatement {
+      const varType = decl != "var" ? decl : undefined
+      return createNode('forEach', { varType  , varName , arrayRef, statements }) 
+    } // TODO in interpreter we need to see if statement is of type null or just var or property reference
 
-FlowControlBlock = "{" _ FlowControlStatement* _ "}" // { return createNode('', {  }) }
+FlowControlBlock = "{" _ statements:FlowControlStatement* _ "}" { return createNode('block', { statements }) }
 
-FunctionBlock = "{" _ FunctionStatement* _ "}" // { return createNode('', {  }) }
+FunctionBlock = "{" _ statements:FunctionStatement* _ "}" { return createNode('block', { statements }) }
 
-FunFlowControlBlock = "{" _ FunctionFlowControlStatement* _ "}" // { return createNode('', {  }) }
+FunFlowControlBlock = "{" _ statements:FunctionFlowControlStatement* _ "}" { return createNode('block', { statements }) }
 
 Block 
-  = "{" _ Statement* _ "}" // { return createNode('', {  }) }
+  = "{" _ statements:Statement* _ "}" { return createNode('block', { statements }) }
 
 DeclarativeStatement
-  = "var" _ Id _ "=" _ Expression _ ";" // { return createNode('', {  }) }
-  / Type _ Id _ ("=" _ Expression _)? _ ";" // { return createNode('', {  }) }
+  = "var" _ name:Id _ assigment:("=" _ value:Expression { return value })? _ ";" {
+    if (!assigment){ 
+      const loc = location()
+      throw new Error('variable has to have a value at line ' + loc.start.line + ' column ' + loc.start.column)
+    }
+    return createNode('varDecl', { name, value: assigment }) 
+  }
+  / type:Type _ name:Id _ value:("=" _ expression:Expression _ { return expression } )? _ ";" { return createNode('varDefinition', { type, name, value }) }
 
 Expression 
   = Assignment
@@ -182,7 +232,7 @@ Unary
 
 Call 
   = callee:Primary _ actions:(
-      "(" _ args:Arguments? _")" { return { type: 'functionCall', args } }
+      "(" _ args:Arguments? _")" { return { type: 'functionCall', args: args.args } }
       / "." _ property:Id indexes:( _ arrayIndex:ArrayIndex { return { deep: arrayIndex.indexes } })* { return { type: 'getProperty', property, indexes: indexes } }
     )* { 
       if (!(callee instanceof nodes.Parenthesis || callee instanceof nodes.GetVar) && actions.length > 0) 
@@ -210,7 +260,9 @@ ArrayIndex = "[" _ index:Number _"]" {
     return { index: index.value } 
   }
 
-Arguments = Expression _ ("," _ Expression)* { return createNode('funArgs', {  }) }
+Arguments = arg:Expression _ args:("," _ argument:Expression { return argument } )* { 
+  return createNode('funArgs', { args: [arg, ...args] }) 
+}
 
 Primary
   = Primitve
@@ -275,7 +327,7 @@ SecondBinaryOperator = "*"/ "/"/ "%"
 Id 
   = [_a-zA-Z][0-9a-zA-Z_]* { return text() }
 
-Type = type:Id _ arrayLevel:("[" _ "]")* { return createNode('type', { type, arrayLevel }) }
+Type = type:Id _ arrayLevel:("[" _ "]")* { return createNode('type', { type, arrayLevel: arrayLevel.length }) }
 
 Types 
   = "int" / "float" / "string" / "boolean" / "char" / "Array"
