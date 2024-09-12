@@ -1,7 +1,11 @@
 
 class Statement {
     constructor() {
-        // this.location
+        this.location
+    }
+
+    interpret(interpreter) {
+        throw new Error('interpreter method not implemented')
     }
 }
 
@@ -10,6 +14,10 @@ export class Struct extends Statement {
         super()
         this.structName = structName
         this.props = props
+    }
+    
+    interpret(interpreter) {
+        return interpreter.visitStruct(this)
     }
 }
 
@@ -24,6 +32,10 @@ export class Function extends Statement {
         // console.log(params)
         // console.log(body)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitFunction(this)
+    }
 }
 
 export class Parameter extends Statement {
@@ -33,6 +45,10 @@ export class Parameter extends Statement {
         this.id = id
         // console.log(type)
     //     console.log(id)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitParameter(this)
     }
 }
 
@@ -44,6 +60,10 @@ export class Type extends Statement {
         // console.log(type)
         // console.log(arrayLevel)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitType(this)
+    }
 }
 
 
@@ -51,11 +71,21 @@ export class Break extends Statement {
     constructor() {
         super()
     }
+
+    interpret(interpreter) {
+        return interpreter.visitBreak(this)
+    }
 }
 
 export class Continue extends Statement {
     constructor() {
         super()
+    }
+
+    
+
+    interpret(interpreter) {
+        return interpreter.visitContinue(this)
     }
 }
 
@@ -64,6 +94,12 @@ export class Return extends Statement {
         super()
         this.expression = expression
         // console.log(expression)
+    }
+
+    
+
+    interpret(interpreter) {
+        return interpreter.visiReturnt(this)
     }
 }
 
@@ -77,6 +113,12 @@ export class SetVar extends Statement {
         // console.log(operator)
         // console.log(assignment)
     }
+
+    
+
+    interpret(interpreter) {
+        return interpreter.visitSetVar(this)
+    }
 }
 
 export class SetProperty extends Statement {
@@ -89,6 +131,10 @@ export class SetProperty extends Statement {
         // console.log(operator)
         // console.log(assignment)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitSetProperty(this)
+    }
 }
 
 export class GetVar extends Statement {
@@ -97,6 +143,10 @@ export class GetVar extends Statement {
         this.indexes = indexes
         this.name = name
         // console.log(name)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitGetVar(this)
     }
 }
 
@@ -110,6 +160,10 @@ export class GetProperty extends Statement {
         // console.log(name)
         // console.log(indexes)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitGetProperty(this)
+    }
 }
 
 export class FunctionCall extends Statement {
@@ -120,15 +174,23 @@ export class FunctionCall extends Statement {
         // console.log(callee)
         // console.log(args)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitFunctionCall(this)
+    }
 }
 
 export class StructInstance extends Statement {
-    constructor({ name, args }) {
+    constructor({ type, args }) {
         super()
-        this.name = name
+        this.type = type
         this.args = args
         // console.log(name)
         // console.log(args)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitStructInstance(this)
     }
 }
         
@@ -138,6 +200,10 @@ export class Parenthesis extends Statement {
         super()
         this.expression = expression
         // console.log(expression)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitParenthesis(this)
     }
 }
         
@@ -150,6 +216,10 @@ export class Ternary extends Statement {
         // console.log(logicalExpression)
         // console.log(nonDeclStatementTrue)
         // console.log(nonDeclStatementFalse)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitTernary(this)
     }
 }
 
@@ -164,6 +234,10 @@ export class Binary extends Statement {
         // console.log(left)
         // console.log(right)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitBinary(this)
+    }
 }
 
 
@@ -175,6 +249,10 @@ export class Unary extends Statement {
         // console.log(operator)
         // console.log(right)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitUnary(this)
+    }
 }
 
 export class Literal extends Statement {
@@ -184,6 +262,10 @@ export class Literal extends Statement {
         this.value = value
         // console.log(type)
         // console.log(value)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitLiteral(this)
     }
 }
 
@@ -195,6 +277,10 @@ export class StructArg extends Statement {
         this.expression = expression
         // console.log(id + '' + expression)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitStructArg(this)
+    }
 }
 
 
@@ -203,6 +289,10 @@ export class FunArgs extends Statement {
         super()
         this.args = args
         // console.log(args)
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitFunArgs(this)
     }
 }
 
@@ -217,6 +307,10 @@ export class VarDecl extends Statement {
         // console.log()
         // console.log(name + '' + value)
     }
+
+    interpret(interpreter) {
+        return interpreter.visitVarDecl(this)
+    }
 }
 
 export class VarDefinition extends Statement {
@@ -228,6 +322,10 @@ export class VarDefinition extends Statement {
         // console.log()
         // console.log()
     }
+
+    interpret(interpreter) {
+        return interpreter.visitVarDefinition(this)
+    }
 }
 
 export class Block extends Statement {
@@ -236,6 +334,10 @@ export class Block extends Statement {
         this.statements = statements
         // console.log()
         // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitBlock(this)
     }
 }
 
@@ -247,6 +349,10 @@ export class ForEach extends Statement {
         this.arrayRef = arrayRef
         this.statements = statements
         // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitForEach(this)
     }
 }
 
@@ -260,6 +366,93 @@ export class For extends Statement {
         this.body = body
         // console.log()
         // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitFor(this)
+    }
+}
+      
+export class While extends Statement {
+    constructor({ condition, statements }) {
+        super()
+        this.condition = condition
+        this.statements = statements
+       // console.log()
+       // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitWhile(this)
+    }
+}
+
+export class Switch extends Statement {
+    constructor({ subject, cases }) {
+        super()
+        this.subject = subject
+        this.cases = cases
+       // console.log()
+       // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitSwitch(this)
+    }
+}
+
+export class If extends Statement {
+    constructor({ condition, statementsTrue, statementsFalse }) {
+        super()
+        this.condition = condition
+        this.statementsTrue = statementsTrue
+        this.statementsFalse = statementsFalse
+       // console.log()
+       // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visiIf(this)
+    }
+}
+
+export class TypeOf extends Statement {
+    constructor({ expression }) {
+        super()
+        this.expression = expression
+       // console.log()
+       // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitTypeOf(this)
+    }
+}
+
+export class ArrayDef extends Statement {
+    constructor({ elements }) {
+        super()
+        this.elements = elements
+       // console.log()
+       // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitArrayDef(this)
+    }
+}
+
+export class ArrayInit extends Statement {
+    constructor({ type, levelsSize }) {
+        super()
+        this.type = type
+        this.levelsSize = levelsSize
+       // console.log()
+       // console.log()
+    }
+
+    interpret(interpreter) {
+        return interpreter.visitArrayInit(this)
     }
 }
 
@@ -288,5 +481,11 @@ export default {
     VarDefinition,
     Block,
     ForEach,
-    For
+    For,
+    While,
+    Switch,
+    If,
+    TypeOf,
+    ArrayDef,
+    ArrayInit
 }

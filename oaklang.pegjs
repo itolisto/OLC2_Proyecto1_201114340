@@ -26,12 +26,19 @@
       'block': nodes.Block,
       'forEach': nodes.ForEach,
       'for': nodes.For,
+      'while': nodes.While,
+      'switch': nodes.Switch,
+      'if': nodes.If,
+      'typeof': nodes.TypeOf,
+      'arrayDef': nodes.ArrayDef,
+      'arrayInit': nodes.ArrayInit,
     }
 
 
     try {
       const node = new types[nodeType](properties)
     // node.location = location()  // location() is a peggy function that indicates where this node is in the source code
+    node,location = null
     return node 
     } catch (error) {
       console.log(error)
@@ -43,52 +50,58 @@
 File 
   = _ entries:( Statement / Struct )* _ { return entries }
 
-Struct = "struct" _ structName:Id _ "{" _ props:( type:Id _ name:Id _ ";" _ { return { type, name } })+ _ "}" _ { return createNode('struct', { structName, props }) }
+// Type = type:Id _ arrayLevel:("[" _ "]")* { return createNode('type', { type, arrayLevel: arrayLevel.length }) }
+Struct 
+  = "struct" _ structName:Id _ "{" 
+    _ props:( type:Type _ name:Id _ ";" _ { return { type, name } })+ 
+  _ "}" _ { return createNode('struct', { structName, props }) }
 
 Statement
-  = declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
-  / nonDeclarativeStatement: NonDeclarativeStatement _ { return nonDeclarativeStatement }
+  = 
+  nonDeclarativeStatement: NonDeclarativeStatement _ { return nonDeclarativeStatement }
+  / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
 
 FlowControlStatement
 	= declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
   / nonDeclarativeStatement: FControlInsideStatement _ { return nonDeclarativeStatement }
 
 FunctionStatement
-	= Return
+	= returnExpression:Return _ { return returnExpression}
   / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
   / nonDeclarativeStatement: FStatement _ { return nonDeclarativeStatement }
  
 FunctionFlowControlStatement 
-  = Return
+  = returnExpression:Return _ { return returnExpression}
   / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
   / nonDeclarativeStatement: FunFlowControlInsideStatement _ { return nonDeclarativeStatement }
 
 NonDeclarativeStatement
   = Block
+  / FlowControl
   / expression:Expression _ ";" { return expression }
   / Function
-  / FlowControl
 
 FControlInsideStatement 
   = FlowControlBlock 
   / TransferStatement 
+  / FlowControl
   / expression:Expression _ ";" { return expression }
   / Function
-  / FlowControl
 
 FunFlowControlInsideStatement 
   = FunFlowControlBlock 
   / TransferStatement
   / Return
+  / FlowControl
   / expression:Expression _ ";" { return expression }
   / Function
-  / FlowControl
 
 FStatement
   =  FunctionBlock
+  / FunFlowControl
   / expression:Expression _ ";" { return expression }
   / Function
-  / FunFlowControl
+
 
 Function = returnType:Type _ id:Id _ "("
     _ params:( paramLeft: Parameter paramsRight:(_ "," _ paramsRight:Parameter { return paramsRight })*  { return [paramLeft, ...paramsRight] } )? 
@@ -105,9 +118,23 @@ TransferStatement
 Return = "return" _ expression:Expression? _ ";" { return createNode('return', { expression }) }
 
 FunFlowControl
-  = "if" _ "(" _ Expression _ ")" _ FunFlowControlInsideStatement (_ "else " _ FunFlowControlInsideStatement )? // { return createNode('', {  }) }
-  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ FunFlowControlInsideStatement*)* _ ("default" _ ":" _ FunFlowControlInsideStatement*)? _"}" // { return createNode('', {  }) }
-  / "while" _ "(" _ Expression _ ")" _ FunFlowControlInsideStatement // { return createNode('', {  }) }
+  = "if" _ "(" _ condition:Expression _ ")" 
+      _ statementsTrue:FunFlowControlInsideStatement 
+      statementsFalse:(_ "else " _ statements:FunFlowControlInsideStatement { return statements } )?
+      { return createNode('if', { condition, statementsTrue, statementsFalse }) }
+  / "switch" _ "(" _ subject:Expression _ ")" _ "{" 
+      cases:( 
+        _ "case" _ compareTo:Expression _ ":" 
+          statements:(
+            _ statement:FunctionFlowControlStatement _ { return statement }
+          )* { return { compareTo, statements } }
+        )* 
+        _ defaultCase:("default" _ ":" _ statements:FunctionFlowControlStatement* { return { compareTo: 'default', statements}} 
+      )?
+    _"}" { 
+      return createNode('switch', { subject, cases: [...cases, defaultCase] }) 
+    }
+  / "while" _ "(" _ condition:Expression _ ")" _ statements:FunFlowControlInsideStatement { return createNode('while', { condition, statements }) }
   / ForFunVariation
 
 ForFunVariation
@@ -129,9 +156,23 @@ ForFunVariation
     } // TODO in interpreter we need to see if statement is of type null or just var or property reference
 
 FlowControl
-  = "if" _ "(" _ Expression _ ")" _ FControlInsideStatement (_ "else " _ FControlInsideStatement)? // { return createNode('', {  }) }
-  / "switch" _ "(" _ Expression _ ")" _ "{" ( _ "case" _ Expression _ ":" _ FControlInsideStatement*)* _ ("default" _ ":" _ FControlInsideStatement*)? _"}" // { return createNode('', {  }) }
-  / "while" _ "(" _ Expression _ ")" _ FControlInsideStatement // { return createNode('', {  }) }
+  = "if" _ "(" _ condition:Expression _ ")" 
+      _ statementsTrue:FControlInsideStatement 
+      statementsFalse:(_ "else " _ statements:FControlInsideStatement { return statements })?
+      { return createNode('if', { condition, statementsTrue, statementsFalse }) }
+  / "switch" _ "(" _ subject:Expression _ ")" _ "{" 
+      cases:( 
+        _ "case" _ compareTo:Expression _ ":" 
+          statements:(
+            _ statement:FlowControlStatement { return statement }
+          )* { return { compareTo, statements } }
+        )* 
+        _ defaultCase:("default" _ ":" _ statements:FlowControlStatement* { return { compareTo: 'default', statements}} 
+      )?
+    _"}" { 
+      return createNode('switch', { subject, cases: [...cases, defaultCase] }) 
+    }
+  / "while" _ "(" _ condition:Expression _ ")" _ statements:FControlInsideStatement { return createNode('while', { condition, statements }) }
   / ForVariation
 
 ForVariation
@@ -164,8 +205,9 @@ Block
 DeclarativeStatement
   = "var" _ name:Id _ assigment:("=" _ value:Expression { return value })? _ ";" {
     if (!assigment){ 
-      const loc = location()
-      throw new Error('variable has to have a value at line ' + loc.start.line + ' column ' + loc.start.column)
+      // const loc = location()
+      throw new Error('variable has to have a value at line ')
+      //  + loc.start.line + ' column ' + loc.start.column)
     }
     return createNode('varDecl', { name, value: assigment }) 
   }
@@ -194,8 +236,9 @@ Assignment
               return createNode('setProperty', { assignee: prevAssignee, operator, assignment })
           } 
           
-          const loc = location()
-          throw new Error('Invalind assignment ' + assignment +  ' call  at line ' + loc.start.line + ' column ' + loc.start.column)
+          // const loc = location()
+          throw new Error('Invalind assignment ')
+          //  + assignment +  ' call  at line ' + loc.start.line + ' column ' + loc.start.column)
         },
         assignee
       )
@@ -207,24 +250,59 @@ Ternary
   / Logical
 
 Logical
-  = left:Equality _ operator:("&&"/"||") _ right:Logical { return createNode('binary', { operator, left, right }) }
-  / Equality
+  = left:Equality right:(_ operator:("&&"/"||") _ rightExpression:Equality { return { operator, rightExpression }})* {
+      return right.reduce(
+        (prevOperation, currentOperation) => {
+          const {operator, rightExpression} = currentOperation
+          return createNode('binary', { operator, left: prevOperation, right: rightExpression }) 
+        },
+        left
+      )
+    }
 
 Equality
-  = left:Comparisson _ operator:("=="/"!=") _ right:Equality { return createNode('binary', { operator, left, right }) }
-  / Comparisson
+  = left:Comparisson right:(_ operator:("=="/"!=") _ rightExpression:Comparisson { return { operator, rightExpression }})* { 
+      return right.reduce(
+        (prevOperation, currentOperation) => {
+          const {operator, rightExpression} = currentOperation
+          return createNode('binary', { operator, left: prevOperation, right: rightExpression }) 
+        },
+        left
+      )
+    }
+  
 
 Comparisson
-  = left:Additive _ operator:(">=" / ">" / "<=" / "<") _ right:Comparisson { return createNode('binary', { operator, left, right }) }
-  / Additive
+  = left:Additive right:(_ operator:(">=" / ">" / "<=" / "<") _ rightExpression:Additive { return { operator, rightExpression }})* { 
+        if (right.length == 0) {
+           return left
+        } else {
+          const {operator, rightExpression} = right[0]
+          return createNode('binary', { operator, left, right: rightExpression }) 
+        }
+    }
 
 Additive
-  = left:Multiplicative _ operator:FirstBinaryOperator _ right:Additive { return createNode('binary', { operator, left, right }) }
-  / Multiplicative
+  = left:Multiplicative  right:(_ operator:FirstBinaryOperator _ rightExpression:Multiplicative  { return { operator, rightExpression }})* { 
+      return right.reduce(
+        (prevOperation, currentOperation) => {
+          const {operator, rightExpression} = currentOperation
+          return createNode('binary', { operator, left: prevOperation, right: rightExpression }) 
+        },
+        left
+      )
+  }
 
 Multiplicative
-  = left:Unary  _ operator:SecondBinaryOperator _ right:Multiplicative { return createNode('binary', { operator, left, right }) }
-  / Unary
+  = left:Unary  right:(_ operator:SecondBinaryOperator _ rightExpression:Unary  { return { operator, rightExpression }})* { 
+      return right.reduce(
+        (prevOperation, currentOperation) => {
+          const {operator, rightExpression} = currentOperation
+          return createNode('binary', { operator, left: prevOperation, right: rightExpression }) 
+        },
+        left
+      )
+  }
 
 Unary
   = operator:("-"/"!") right:Unary { return createNode('unary', { operator, right }) }
@@ -235,8 +313,9 @@ Call
       "(" _ args:Arguments? _")" { return { type: 'functionCall', args: args.args } }
       / "." _ property:Id indexes:( _ arrayIndex:ArrayIndex { return { deep: arrayIndex.indexes } })* { return { type: 'getProperty', property, indexes: indexes } }
     )* { 
-      if (!(callee instanceof nodes.Parenthesis || callee instanceof nodes.GetVar) && actions.length > 0) 
-        throw new Error('illegal ' + actions.type + ' call  at line ' + location.start.line + ' column ' + location.start.column)
+      if (!(callee instanceof nodes.Parenthesis || callee instanceof nodes.GetVar || callee instanceof nodes.StructInstance) && actions.length > 0) 
+        throw new Error('illegal call') 
+      // + actions.type + ' call  at line ' + location.start.line + ' column ' + location.start.column)
 
       return actions.reduce(
         (prevCallee, currentAction) => {
@@ -253,9 +332,10 @@ Call
     }
 
 ArrayIndex = "[" _ index:Number _"]" { 
-    if (index.type != 'integer') {
-      const loc = location()
-      throw new Error('Invalind index ' + index.value +  ' at line ' + loc.start.line + ' column ' + loc.start.column)
+    if (index.type != 'int') {
+      // const loc = location()
+      throw new Error('Invalind index ' )
+      // + index.value +  ' at line ' + loc.start.line + ' column ' + loc.start.column)
     }
     return { index: index.value } 
   }
@@ -267,24 +347,22 @@ Arguments = arg:Expression _ args:("," _ argument:Expression { return argument }
 Primary
   = Primitve
   / "(" _ expression:Expression _ ")" { return createNode('parenthesis', { expression }) }
-  / "null" // TODO { return createNode('', {  }) }
-  / "typeof" _ Expression _ // TODO { return createNode('', {  }) }
+  / "null" { return createNode('literal', { type: 'null', value: null }) }
+  / "typeof" _ expression:Expression _ { return createNode('typeof', { expression }) }
   / name:Id _ action:( 
       "{" _ args:StructArg _ "}" { return { type: 'constructor', args } }
       / _ indexes:ArrayIndex* { return { type: 'getArray', indexes: indexes.map(entry => entry.index) } }
     )? {
       const { type, args, indexes } = action
       if (type == 'constructor') {
-        return createNode('structInstance', { name, args })   
+        return createNode('structInstance', { type: name, args })   
       }
 
-      if (type == 'getArray'){
+      // if (type == 'getArray'){
         // else is a var refercne
         return createNode('getVar', { name, indexes }) 
-      }
+      // }
     }
-
-TypeOf = "typeof" _ Expression _ // { return createNode('', {  }) }
 
 StructArg = id:Id _ ":" _ expression:Expression args:(_ "," _ arg:StructArg { return arg } )* { 
   const enforcedArg = createNode('structArg', { id, expression }) 
@@ -301,13 +379,13 @@ Primitve
 String
   = "\"" string:(!["'].)* "\"" { return createNode('literal', { type: 'string', value: string.flatMap(s => s).join("") }) } 
 
-Boolean = value:("true" / "false") { return createNode('literal', { type: 'boolean', value: value == "true"}) } 
+Boolean = value:("true" / "false") { return createNode('literal', { type: 'bool', value: value == "true"}) } 
 
 Char = "'" character:(!["'].)? "'" { return createNode('literal', { type: 'char', value: character.flatMap(s => s).join("") }) } 
 
 Array 
-  = "{" _ Primary? (_ "," _ Primary )* _ "}" // TODO { return createNode('', {  }) }
-  / "new" _ Id _ ("[" _ index:[0-9]+ _"]")+ // TODO { return createNode('', {  }) }
+  = "{" _ element:Expression? elements:(_ "," _ elementRight:Expression { return elementRight } )* _ "}" { return createNode('arrayDef', { elements:[element || [], elements].flatMap(val => val) }) }
+  / "new" _ type:Id _ levelsSize:("[" _ index:[0-9]+ _"]" { return parseInt(index.join(""), 10) })+ { return createNode('arrayInit', { type: type, levelsSize }) }
 
 Number 
   = whole:[0-9]+decimal:("."[0-9]+)? {
@@ -315,7 +393,7 @@ Number
           'literal', 
           decimal 
             ? { type: 'float', value: parseFloat(whole.join("")+decimal.flatMap(n => n).join(""), 10) }
-            : { type: 'integer', value: parseInt(whole.join(""), 10) }
+            : { type: 'int', value: parseInt(whole.join(""), 10) }
         )
     }
 
@@ -327,7 +405,7 @@ SecondBinaryOperator = "*"/ "/"/ "%"
 Id 
   = [_a-zA-Z][0-9a-zA-Z_]* { return text() }
 
-Type = type:Id _ arrayLevel:("[" _ "]")* { return createNode('type', { type, arrayLevel: arrayLevel.length }) }
+Type = (!"typeOf")type:Id _ arrayLevel:("[" _ "]")* { return createNode('type', { type, arrayLevel: arrayLevel.length }) }
 
 Types 
   = "int" / "float" / "string" / "boolean" / "char" / "Array"
