@@ -99,7 +99,7 @@ export class Return extends Statement {
     
 
     interpret(interpreter) {
-        return interpreter.visiReturnt(this)
+        return interpreter.visitReturn(this)
     }
 }
 
@@ -181,9 +181,9 @@ export class FunctionCall extends Statement {
 }
 
 export class StructInstance extends Statement {
-    constructor({ type, args }) {
+    constructor({ name, args }) {
         super()
-        this.type = type
+        this.name = name
         this.args = args
         // console.log(name)
         // console.log(args)
@@ -412,7 +412,7 @@ export class If extends Statement {
     }
 
     interpret(interpreter) {
-        return interpreter.visiIf(this)
+        return interpreter.visitIf(this)
     }
 }
 

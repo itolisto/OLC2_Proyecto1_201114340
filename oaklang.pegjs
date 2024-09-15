@@ -37,9 +37,8 @@
 
     try {
       const node = new types[nodeType](properties)
-    // node.location = location()  // location() is a peggy function that indicates where this node is in the source code
-    node,location = null
-    return node 
+      node.location = location()  // location() is a peggy function that indicates where this node is in the source code
+      return node 
     } catch (error) {
       console.log(error)
     }
@@ -61,53 +60,21 @@ Statement
   nonDeclarativeStatement: NonDeclarativeStatement _ { return nonDeclarativeStatement }
   / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
 
-FlowControlStatement
-	= declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
-  / nonDeclarativeStatement: FControlInsideStatement _ { return nonDeclarativeStatement }
-
-FunctionStatement
-	= returnExpression:Return _ { return returnExpression}
-  / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
-  / nonDeclarativeStatement: FStatement _ { return nonDeclarativeStatement }
- 
-FunctionFlowControlStatement 
-  = returnExpression:Return _ { return returnExpression}
-  / declarativeStatement: DeclarativeStatement _ { return declarativeStatement }
-  / nonDeclarativeStatement: FunFlowControlInsideStatement _ { return nonDeclarativeStatement }
-
 NonDeclarativeStatement
   = Block
-  / FlowControl
-  / expression:Expression _ ";" { return expression }
-  / Function
-
-FControlInsideStatement 
-  = FlowControlBlock 
-  / TransferStatement 
-  / FlowControl
-  / expression:Expression _ ";" { return expression }
-  / Function
-
-FunFlowControlInsideStatement 
-  = FunFlowControlBlock 
   / TransferStatement
   / Return
   / FlowControl
   / expression:Expression _ ";" { return expression }
   / Function
 
-FStatement
-  =  FunctionBlock
-  / FunFlowControl
-  / expression:Expression _ ";" { return expression }
-  / Function
-
-
 Function = returnType:Type _ id:Id _ "("
     _ params:( paramLeft: Parameter paramsRight:(_ "," _ paramsRight:Parameter { return paramsRight })*  { return [paramLeft, ...paramsRight] } )? 
     _ ")" _ body:FunctionBlock { 
       return createNode('function', { returnType, id, params: params || [], body}) 
     }
+
+FunctionBlock = "{" _ statements:Statement* _ "}" { return createNode('block', { statements }) }
 
 Parameter = type:Type _ id:Id { return createNode('parameter', { type, id }) }
 
@@ -117,62 +84,25 @@ TransferStatement
 
 Return = "return" _ expression:Expression? _ ";" { return createNode('return', { expression }) }
 
-FunFlowControl
-  = "if" _ "(" _ condition:Expression _ ")" 
-      _ statementsTrue:FunFlowControlInsideStatement 
-      statementsFalse:(_ "else " _ statements:FunFlowControlInsideStatement { return statements } )?
-      { return createNode('if', { condition, statementsTrue, statementsFalse }) }
-  / "switch" _ "(" _ subject:Expression _ ")" _ "{" 
-      cases:( 
-        _ "case" _ compareTo:Expression _ ":" 
-          statements:(
-            _ statement:FunctionFlowControlStatement _ { return statement }
-          )* { return { compareTo, statements } }
-        )* 
-        _ defaultCase:("default" _ ":" _ statements:FunctionFlowControlStatement* { return { compareTo: 'default', statements}} 
-      )?
-    _"}" { 
-      return createNode('switch', { subject, cases: [...cases, defaultCase] }) 
-    }
-  / "while" _ "(" _ condition:Expression _ ")" _ statements:FunFlowControlInsideStatement { return createNode('while', { condition, statements }) }
-  / ForFunVariation
-
-ForFunVariation
-  = "for" _ "(" 
-      _ variable:(
-          dcl:DeclarativeStatement { return dcl }
-          / dcl:Expression _ ";" { return dcl }
-          / _ ";" { return 'empty'}
-        )
-      _ condition:Expression? _ ";"
-      _ updateExpression:Expression? _ 
-      ")" 
-      _ body:FunFlowControlInsideStatement { 
-      return createNode('for', { variable: variable != 'empty' ? variable : null, condition, updateExpression, body }) 
-    }
-  / "for" _ "(" _ decl:(type:"var"/ type:Type) _ varName:Id _ ":" _ arrayRef: Expression _")" _ statements:FunFlowControlInsideStatement {
-      const varType = decl != "var" ? decl : undefined
-      return createNode('forEach', { varType  , varName , arrayRef, statements }) 
-    } // TODO in interpreter we need to see if statement is of type null or just var or property reference
-
 FlowControl
   = "if" _ "(" _ condition:Expression _ ")" 
-      _ statementsTrue:FControlInsideStatement 
-      statementsFalse:(_ "else " _ statements:FControlInsideStatement { return statements })?
+      _ statementsTrue:Statement 
+      statementsFalse:(_ "else " _ statements:Statement { return statements })?
       { return createNode('if', { condition, statementsTrue, statementsFalse }) }
   / "switch" _ "(" _ subject:Expression _ ")" _ "{" 
       cases:( 
-        _ "case" _ compareTo:Expression _ ":" 
-          statements:(
-            _ statement:FlowControlStatement { return statement }
-          )* { return { compareTo, statements } }
-        )* 
-        _ defaultCase:("default" _ ":" _ statements:FlowControlStatement* { return { compareTo: 'default', statements}} 
-      )?
+        _ "case" _ compareTo:Expression _ ":"
+            _ statements:Statement* { return { compareTo, statements } }
+        /
+        _ "default" _ ":" _ statements:Statement* { return { compareTo: 'default', statements}}
+        )*
     _"}" { 
-      return createNode('switch', { subject, cases: [...cases, defaultCase] }) 
+      const defaults = cases.filter((oakCase) => oakCase.compareTo == 'default')
+      if(defaults.length > 1) throw new Error(`multiple default clauses`)
+
+      return createNode('switch', { subject, cases: [...cases] }) 
     }
-  / "while" _ "(" _ condition:Expression _ ")" _ statements:FControlInsideStatement { return createNode('while', { condition, statements }) }
+  / "while" _ "(" _ condition:Expression _ ")" _ statements:Statement { return createNode('while', { condition, statements }) }
   / ForVariation
 
 ForVariation
@@ -185,19 +115,13 @@ ForVariation
       _ condition:Expression? _ ";"
       _ updateExpression:Expression? _ 
       ")" 
-      _ body:FControlInsideStatement { 
+      _ body:Statement { 
       return createNode('for', { variable: variable != 'empty' ? variable : null, condition, updateExpression, body }) 
     }
-  / "for" _ "(" _ decl:(type:"var"/ type:Type) _ varName:Id _ ":" _ arrayRef: Expression _")" _ statements:FControlInsideStatement {
+  / "for" _ "(" _ decl:(type:"var"/ type:Type) _ varName:Id _ ":" _ arrayRef: Expression _")" _ statements:Statement {
       const varType = decl != "var" ? decl : undefined
       return createNode('forEach', { varType  , varName , arrayRef, statements }) 
     } // TODO in interpreter we need to see if statement is of type null or just var or property reference
-
-FlowControlBlock = "{" _ statements:FlowControlStatement* _ "}" { return createNode('block', { statements }) }
-
-FunctionBlock = "{" _ statements:FunctionStatement* _ "}" { return createNode('block', { statements }) }
-
-FunFlowControlBlock = "{" _ statements:FunctionFlowControlStatement* _ "}" { return createNode('block', { statements }) }
 
 Block 
   = "{" _ statements:Statement* _ "}" { return createNode('block', { statements }) }
@@ -246,11 +170,22 @@ Assignment
   / Ternary 
 
 Ternary 
-  = logicalExpression:Logical _ "?" _ nonDeclStatementTrue:Ternary _ ":" _ nonDeclStatementFalse:Ternary { return createNode('ternary', { logicalExpression, nonDeclStatementTrue, nonDeclStatementFalse }) }
-  / Logical
+  = logicalExpression:Or _ "?" _ nonDeclStatementTrue:Ternary _ ":" _ nonDeclStatementFalse:Ternary { return createNode('ternary', { logicalExpression, nonDeclStatementTrue, nonDeclStatementFalse }) }
+  / Or
 
-Logical
-  = left:Equality right:(_ operator:("&&"/"||") _ rightExpression:Equality { return { operator, rightExpression }})* {
+Or
+  = left:And right:(_ operator:"||" _ rightExpression:And { return { operator, rightExpression }})* {
+      return right.reduce(
+        (prevOperation, currentOperation) => {
+          const {operator, rightExpression} = currentOperation
+          return createNode('binary', { operator, left: prevOperation, right: rightExpression }) 
+        },
+        left
+      )
+    }
+
+And
+  = left:Equality right:(_ operator:"&&" _ rightExpression:Equality { return { operator, rightExpression }})* {
       return right.reduce(
         (prevOperation, currentOperation) => {
           const {operator, rightExpression} = currentOperation
@@ -310,8 +245,8 @@ Unary
 
 Call 
   = callee:Primary _ actions:(
-      "(" _ args:Arguments? _")" { return { type: 'functionCall', args: args.args } }
-      / "." _ property:Id indexes:( _ arrayIndex:ArrayIndex { return { deep: arrayIndex.indexes } })* { return { type: 'getProperty', property, indexes: indexes } }
+      "(" _ args:Arguments? _")" { return { type: 'functionCall', args: args?.args || [] } }
+      / "." _ property:Id indexes:( _ arrayIndex:ArrayIndex { return arrayIndex.index })* { return { type: 'getProperty', property, indexes } }
     )* { 
       if (!(callee instanceof nodes.Parenthesis || callee instanceof nodes.GetVar || callee instanceof nodes.StructInstance) && actions.length > 0) 
         throw new Error('illegal call') 
@@ -324,20 +259,15 @@ Call
             case 'functionCall':
               { return createNode('functionCall', { callee: prevCallee, args: args || []}) } 
             case 'getProperty':
-              { return createNode('getProperty', { callee: prevCallee, name: property, indexes: indexes.map(entry => entry.index) }) } 
+              { return createNode('getProperty', { callee: prevCallee, name: property, indexes }) } 
           }
         },
         callee
      )
     }
 
-ArrayIndex = "[" _ index:Number _"]" { 
-    if (index.type != 'int') {
-      // const loc = location()
-      throw new Error('Invalind index ' )
-      // + index.value +  ' at line ' + loc.start.line + ' column ' + loc.start.column)
-    }
-    return { index: index.value } 
+ArrayIndex = "[" _ index:Expression _"]" { 
+    return { index } 
   }
 
 Arguments = arg:Expression _ args:("," _ argument:Expression { return argument } )* { 
@@ -355,7 +285,7 @@ Primary
     )? {
       const { type, args, indexes } = action
       if (type == 'constructor') {
-        return createNode('structInstance', { type: name, args })   
+        return createNode('structInstance', { name: name, args })   
       }
 
       // if (type == 'getArray'){
