@@ -1,7 +1,7 @@
 import { Callable } from "./callable.js";
 import { OakError } from "./oakerror.js";
 import { Instance } from "./instance.js";
-import { OakArray } from "./oakarray.js";
+import { OakArray } from "./oaklang.array.js";
 import nodes from "./oaklang.nodes.impl.js"
 
 export class OakClass extends Callable {

@@ -2,7 +2,7 @@ import { BaseVisitor } from './oaklang.base.impl.js'
 import { Environment } from "./environment.js"
 import { DeclaredFunction } from './declaredfunction.js'
 import { OakError } from './oakerror.js'
-import { OakArray } from './oakarray.js'
+import { OakArray } from './oaklang.array.js'
 import nodes, { Break } from './oaklang.nodes.impl.js'
 import { OakClass } from './oakclass.js'
 import { Instance } from './instance.js'
@@ -312,10 +312,10 @@ export class VisitorInterpreter extends BaseVisitor {
                     throw new OakError(location, `expected ${expectedNode.type+expectedDeep} but ${valueNode.type} found `)
         }
 
-        if(valueNode.deep !== undefined) {
+        if (valueNode.deep !== undefined) {
             const foundDeep = "[]".repeat(valueNode.deep)
             throw new OakError(location, `expected ${expectedNode.type} but ${valueNode.type+foundDeep} found `)
-         }
+        }
 
         if(expectedNode.type == valueNode.type && isNullValid) {
             if(node.operator != "=") throw new OakError(location, `invalid assignment ${node.operator}`)
