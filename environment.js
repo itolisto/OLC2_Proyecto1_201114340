@@ -1,7 +1,7 @@
 import { OakError } from "./oakerror.js";
 import { OakClass } from "./oakclass.js";
 import { OakArray } from "./oaklang.array.js";
-import { Callable } from "./callable.js";
+import { Callable } from "./oaklang.callable.js";
 import { SysClass } from "./sysclass.js";
 import { OakConstant } from "./constant.js";
 import { DeclaredFunction } from "./declaredfunction.js";

@@ -1,5 +1,5 @@
 import { BaseVisitor } from "./oaklang.base.impl.js";
-import { Callable } from "./callable.js";
+import { Callable } from "./oaklang.callable.js";
 import { OakError } from "./oakerror.js";
 import nodes from "./oaklang.nodes.impl.js"
 
