@@ -3,17 +3,19 @@ import { OakError } from "./errors/oakerror.js";
 import { Instance } from "./instance.js";
 import { OakArray } from "./oakarray.js";
 import nodes from "./oaklang.nodes.impl.js"
+import { SysClass } from "./sysclass.js";
 
-export class OakObject {
+export class OakObject extends SysClass {
     constructor() {
-        this.functions = {
-            'keys': new ObjectKeys()
-        }
+        super({}, {})
+
+        this.properties = {}
+        this.functions = {'keys': new ObjectKeys()}
     }
 
     getFunction(name) {
         return this.functions[name]
-    }
+    }    
 }
 
 class ObjectKeys extends Callable {

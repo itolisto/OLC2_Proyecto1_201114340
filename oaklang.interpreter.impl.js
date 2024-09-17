@@ -19,7 +19,7 @@ export class VisitorInterpreter extends BaseVisitor {
     constructor() {
         super()
         
-        this.environment = new Environment
+        this.environment = new Environment()
         
         const oakObject = new OakObject()
         const oakSystem = new OakSystem()
@@ -38,6 +38,7 @@ export class VisitorInterpreter extends BaseVisitor {
         this.environment.store('toUpperCase', toUpperCase)
 
         this.output = ''
+
         this.invalidDeclName = { 'string': '', 'int': '', 'float': '', 'bool': '', 'char': '', 'struct':'', 'null':'', 'if':'',  'while':'', 'for':'',  'var':'',  'else': '', 'switch': '', 'break': '', 'continue': '', 'typeof': '', 'return': '', 'void': ''}
         this.nativeDefVal = { 
             'string': new nodes.Literal({type: 'string', value: ''}), 
@@ -47,6 +48,10 @@ export class VisitorInterpreter extends BaseVisitor {
             'char': new nodes.Literal({type: 'char', value: '\u0000'})
         }
         this.specialTypes = {'string': 'string', 'bool': 'bool', 'char': 'char'}
+    }
+
+    printTable(scope) {
+        return this.environment.printTable(scope)
     }
 
 //  { structName, props{ type{ type, arrayLevel: arrayLevel.length }, name } }
@@ -822,35 +827,43 @@ export class VisitorInterpreter extends BaseVisitor {
 //   Parenthesis
     visitFunctionCall(node) {
         // 1. check if it a function, 
-        
-        let func = this.environment.get(node.callee.name)
-        if(func instanceof DeclaredFunction) {
-            const result = func.invoke(this, node.args)
-            return result
-        }
-
-        /** 
-         * 2. if function doesnt exists at this level call function recursevily 
-         * so we can get to the base callee 
-         * */ 
-        if(node.callee instanceof nodes.GetProperty) {
-            // if it is instance of get property we can this inner node to then call the function on it
-            if(node.callee.callee instanceof nodes.GetProperty) {
-                const instance = node.callee.callee.interpret(this)
-                func = instance.getFunction(node.callee.name)
-            } else {
-                const instance = this.environment.get(node.callee.callee.name)
-                func = instance.getFunction(node.callee.name)
+        try {
+                
+            let func = this.environment.get(node.callee.name)
+            if(func instanceof DeclaredFunction) {
+                const result = func.invoke(this, node.args)
+                return result
             }
-        }
 
-        
-        if(func instanceof Callable) {
-            const result = func.invoke({interpreter: this, args: node.args})
-            return result
-        }
+            /** 
+             * 2. if function doesnt exists at this level call function recursevily 
+             * so we can get to the base callee 
+             * */ 
+            if(node.callee instanceof nodes.GetProperty) {
+                // if it is instance of get property we can this inner node to then call the function on it
+                if(node.callee.callee instanceof nodes.GetProperty) {
+                    const instance = node.callee.callee.interpret(this)
+                    func = instance.getFunction(node.callee.name)
+                } else {
+                    const instance = this.environment.get(node.callee.callee.name)
+                    func = instance.getFunction(node.callee.name)
+                }
+            }
 
-        throw new OakError(node.location, `function ${node.callee.name} does not exists`)
+            
+            if(func instanceof Callable) {
+                const result = func.invoke({interpreter: this, args: node.args})
+                return result
+            }
+
+            throw new OakError(node.location, `function ${node.callee.name} does not exists`)
+        } catch(error) {
+            if(error instanceof OakError && error.location == null) {
+                throw new OakError(node.location, error.message)
+            }
+
+            throw error
+        }
     }
 
     // TODO to follow pattern node of type StructArg property "expression" should be renamed "value"
@@ -878,6 +891,8 @@ export class VisitorInterpreter extends BaseVisitor {
          * "new" StructArgs with values interpreted. Anyway, this works
          * */ 
         const argsVals = node.args.map((arg) => { return { id: arg.id, value: arg.expression.interpret(this)}})
+        
+        
         const instance = structDef.invoke(this, argsVals, location)
 
         return instance
@@ -991,6 +1006,8 @@ export class VisitorInterpreter extends BaseVisitor {
                 case '/': {
                     if(type == 'string')
                         throw new OakError(location, `invalid operation ${operator}`)
+                    if(rightValue == 0)
+                        throw new OakError(location, `Divide by 0 is not allowed`)
                     value = leftValue / rightValue
                     node = new nodes.Literal({type, value})
                     break
@@ -1110,14 +1127,23 @@ export class VisitorInterpreter extends BaseVisitor {
             throw new OakError(node.location, 'null can not be assigned to var ')
         }
 
-        // 4. save node
-        this.environment.store(node.name, value)
+        try {
+            // 4. save node
+            this.environment.store(node.name, value)   
+        } catch (error) {
+            if(error instanceof OakError) {
+                throw new OakError(location, error.message)
+            }
+
+            throw error
+        }
     }
 
     //{ type{ type, arrayLevel }, name, value(expression) }
     visitVarDefinition(node) {
         const location = node.location
-
+        try {
+            
         // 2.b check if type exists
         const expectedNode = node.type.interpret(this)
         const classDef = this.environment.get(expectedNode.type)
@@ -1262,6 +1288,14 @@ export class VisitorInterpreter extends BaseVisitor {
         }
 
         throw new OakError(location, `invalid type, expected ${expectedNode.type} but found ${valueNode.type} `)
+            
+        } catch (error) {
+            if(error instanceof OakError && error.location == null) {
+                throw new OakError(location, error.message)
+            }
+
+            throw error
+        }
     }
 
     visitBlock(node) {

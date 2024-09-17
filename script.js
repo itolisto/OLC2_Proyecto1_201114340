@@ -1,33 +1,124 @@
-import { parse } from './oakland.js'
-import { VisitorInterpreter } from './interpreter.js'
+import { parse } from './oaklang.js'
+import { VisitorInterpreter } from './oaklang.interpreter.impl.js'
+import * as aceEditor from 'https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/+esm'
+import { OakError } from './errors/oakerror.js';
 
 var error = document.getElementById("error")
 var input = document.createElement('input');
-const codeArea = document.getElementById('area');
 const console = document.getElementById('consoleOutput')
 const ejecutar = document.getElementById('ejecutar')
 const abrir = document.getElementById('abrir')
 const reportes = document.getElementById('reportes')
 const archivo = document.getElementById('archivo')
+const errores = document.getElementById('errores')
+const simbolos = document.getElementById('simbolos')
+
+var editor = aceEditor.default.edit("area")
+// editor.setTheme("ace/theme/monokai")
+// var textarea = $('textarea[name="area"]').hide();
+// editor.getSession().setValue(textarea.val());
+// editor.getSession().on('change', function(){
+//   textarea.val(editor.getSession().getValue());
+// });
+
+let lexicalErrosOutput
+let sintaxErrorsOutput
+let interpreter
 
 ejecutar.addEventListener('click', () => {
-    const sourceCode = codeArea.value
+    clearErrorMesssage()
+    const sourceCode = editor.getValue()
+    console.textContent = ""
     // try {
-        console.innerHTML = ""
-        const statements = parse(sourceCode)
-        // console.innerHTML = JSON.stringify(statements, null, 2)
-         // const result = tree.accept(interpreter)
-        const interpreter = new VisitorInterpreter()
+        let source = sourceCode
+        let codeLines = sourceCode.split("\n")
+        let found = []
+        let errorLine = 0
 
-        for (const statement of statements) {
-            statement.interpret(interpreter)
+        while (true) {
+            try {
+                parse(source)
+                break
+            } catch (error) {
+                errorLine += error.location.start.line
+
+                found = [...found, { line: errorLine, error: error }]
+
+                if (codeLines.length == 1) {
+                    source = ''
+                    continue
+                }
+                
+                let startIndex = error.location.start.line
+
+                codeLines = codeLines.slice(startIndex, codeLines.length)
+                source = codeLines.join('\n')
+            }
         }
         
-        console.textContent = interpreter.output
-    // } catch (error) {
-    //     console.log(JSON.stringify(error, null, 2))
-    //     output.innerHTML = error.message + ' at line ' + error.location.start.line + ' column ' + error.location.start.column
-    // }
+
+        lexicalErrosOutput = found.reduce((prevError, currentError) => {
+            if(prevError == undefined) {
+                return `lexical error at ${currentError.line} ${currentError.error.message}`
+            } else {
+                return `${prevError}\nlexical error at ${currentError.line} ${currentError.error.message}`
+            }
+        },
+        undefined
+        )
+
+        source = sourceCode
+        codeLines = sourceCode.split("\n")
+        found = []
+        errorLine = 0
+
+        interpreter = new VisitorInterpreter()
+
+        while (true) {
+            try {
+                const statements = parse(source)
+                
+                for (const statement of statements) {
+                    statement.interpret(interpreter)
+                }
+                
+                break
+            } catch (error) {
+
+                errorLine += error.location.start.line
+
+                if (error instanceof OakError) { 
+                    found = [...found, { line: errorLine, error: error }]
+                }
+ 
+                if (codeLines.length == 1) {
+                    source = ''
+                    continue
+                }
+                
+                let startIndex = error.location.start.line
+
+                codeLines = codeLines.slice(startIndex, codeLines.length)
+                source = codeLines.join('\n')
+            }
+        }
+
+        sintaxErrorsOutput = found.reduce((prevError, currentError) => {
+            if(prevError == undefined) {
+                return `sintax error at ${currentError.line} ${currentError.error.message}`
+            } else {
+                return `${prevError}\nsintax error at ${currentError.line} ${currentError.error.message}`
+            }
+        },
+        undefined
+        )
+
+
+        if (lexicalErrosOutput != undefined || sintaxErrorsOutput != undefined) {
+            errorMessage('check errors report')
+        } else {
+            console.textContent = interpreter.output
+        }
 })
 
 abrir.addEventListener('click', () => {
@@ -40,7 +131,7 @@ input.onchange = e => {
    var file = e.target.files[0]; 
 
    if(!(file.name.includes('.oak'))) {
-    errorMessage()
+    errorMessage('Select an .oak file')
    }
 
    // setting up the reader
@@ -50,7 +141,7 @@ input.onchange = e => {
    // here we tell the reader what to do when it's done reading...
    reader.onload = readerEvent => {
       var content = readerEvent.target.result; // this is the content!
-      codeArea.textContent = content
+      editor.setValue(content)
    }
 
 }
@@ -82,6 +173,14 @@ archivo.addEventListener('click', () => {
     }
 })
 
+errores.addEventListener('click', () => {
+    console.textContent = `${lexicalErrosOutput ? lexicalErrosOutput + '\n' : ''}` + `${sintaxErrorsOutput || ''}`
+})
+
+simbolos.addEventListener('click', () => {
+    console.textContent = interpreter.printTable('Global')
+})
+
 // Example JS for handling tab switching, more functionality can be added
 document.querySelectorAll('.tab-button').forEach(button => {
     button.addEventListener('click', () => {
@@ -91,25 +190,11 @@ document.querySelectorAll('.tab-button').forEach(button => {
     });
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const lineNumbers = document.querySelector('.line-numbers');
-    
-
-    function updateLineNumbers() {
-        const lines = codeArea.value.split('\n').length;
-        lineNumbers.innerHTML = Array(lines).fill('<div></div>').join('');
-    }
-
-    codeArea.addEventListener('input', updateLineNumbers);
-    codeArea.addEventListener('scroll', function() {
-        lineNumbers.scrollTop = codeArea.scrollTop;
-    });
-
-    updateLineNumbers();
-});
-
-function errorMessage() {
+function errorMessage(message) {
     // Changing HTML to draw attention
-    error.innerHTML = "<span style='color: red;'>"+
-    "Select an .oak file"
+    error.innerHTML = "<span style='color: red;'>"+ message
+}
+
+function clearErrorMesssage() {
+    error.innerHTML = ''
 }
