@@ -1,5 +1,5 @@
 import { Callable } from "./oaklang.callable.js"
-import { OakConstant } from "./constant.js"
+import { OakConstant } from "./oaklang.constant.js"
 import { Environment } from "./environment.js"
 import { OakError } from "./oakerror.js"
 import { OakArray } from "./oaklang.array.js"
