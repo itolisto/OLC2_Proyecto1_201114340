@@ -1,5 +1,5 @@
 import { Callable } from "./callable.js";
-import { OakError } from "./errors/oakerror.js";
+import { OakError } from "./oakerror.js";
 import nodes from "./oaklang.nodes.impl.js"
 import { SysClass } from "./sysclass.js";
 

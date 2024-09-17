@@ -1,7 +1,7 @@
 import { parse } from './oaklang.js'
 import { VisitorInterpreter } from './oaklang.interpreter.impl.js'
 import * as aceEditor from 'https://cdn.jsdelivr.net/npm/ace-builds@1.36.2/+esm'
-import { OakError } from './errors/oakerror.js';
+import { OakError } from './oakerror.js';
 
 var error = document.getElementById("error")
 var input = document.createElement('input');

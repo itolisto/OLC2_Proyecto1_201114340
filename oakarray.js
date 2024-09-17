@@ -1,5 +1,5 @@
 import functions from "./arrayfunction.js"
-import { OakError } from "./errors/oakerror.js"
+import { OakError } from "./oakerror.js"
 
 
 export class OakArray {

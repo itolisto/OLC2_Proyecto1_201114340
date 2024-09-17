@@ -1,6 +1,6 @@
 import { Callable } from "./callable.js";
 import { OakConstant } from "./constant.js";
-import { OakError } from "./errors/oakerror.js";
+import { OakError } from "./oakerror.js";
 import nodes from "./oaklang.nodes.impl.js"
 
 export class OakIndexOf extends Callable {

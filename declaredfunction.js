@@ -1,11 +1,11 @@
 import { Callable } from "./callable.js"
 import { OakConstant } from "./constant.js"
 import { Environment } from "./environment.js"
-import { OakError } from "./errors/oakerror.js"
-import errors from "./errors/transfer.js"
+import { OakError } from "./oakerror.js"
 import { OakArray } from "./oakarray.js"
 import { OakClass } from "./oakclass.js"
 import nodes from "./oaklang.nodes.impl.js"
+import transfer from "./transfer.js"
 
 export class DeclaredFunction extends Callable {
     // node is the function node // returnType{ type, arrayLevel}, id, params[{ type{ type, arrayLevel}, id }], body[statements] innerscope is a local environment with a reference to the parent
@@ -167,12 +167,12 @@ export class DeclaredFunction extends Callable {
             })
 
             // if function doesn't have a return statement this will throw the exception
-            throw new errors.OakReturn(undefined)
+            throw new transfer.OakReturn(undefined)
         } catch (error) {
             interpreter.environment = prevEnv
 
             // this.node has properties: returnType{ type, arrayLevel}, id, params[{ type{ type, arrayLevel}, id }], body[statements]
-            if (error instanceof errors.OakReturn) {
+            if (error instanceof transfer.OakReturn) {
                 const location = error.location
                 const valueNode = error.value
                 const expectedNode = this.node.returnType
