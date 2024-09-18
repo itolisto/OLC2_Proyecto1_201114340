@@ -56,6 +56,9 @@ export class Environment {
 
     printTable(scope) {
         const entrix = Object.entries(this.values)
+
+        if(entrix.length == 0) return ''
+
         const table = entrix.reduce((prev, [key, value]) => {
             if(prev == undefined) {
                 // structs
@@ -114,7 +117,7 @@ export class Environment {
                 
                 // Arrays
                 if(value instanceof OakArray) {
-                    const array = `${prev}array: ${key}, type: ${value.type}${"[]".repeat(value.deep)}, size: ${value.size}, elements: ${value.value}, scope: ${scope}\n`
+                    const array = `${prev}array: ${key}, type: ${value.type}${"[]".repeat(value.deep)}, size: ${value.size}, elements: ${JSON.stringify(value.value)}, scope: ${scope}\n`
                     return array
                 }
 

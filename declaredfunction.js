@@ -167,12 +167,13 @@ export class DeclaredFunction extends Callable {
             })
 
             // if function doesn't have a return statement this will throw the exception
-            throw new transfer.OakReturn(undefined)
+            throw new errors.OakReturn(undefined)
         } catch (error) {
+            interpreter.printTable(`function ${this.node.id}`)
             interpreter.environment = prevEnv
 
             // this.node has properties: returnType{ type, arrayLevel}, id, params[{ type{ type, arrayLevel}, id }], body[statements]
-            if (error instanceof transfer.OakReturn) {
+            if (error instanceof errors.OakReturn) {
                 const location = error.location
                 const valueNode = error.value
                 const expectedNode = this.node.returnType
