@@ -24,7 +24,7 @@ export class Instance {
      * @param {string} name - El nombre de la propiedad que se va a establecer.
      * @param {*} value - El valor que se asignará a la propiedad.
      */
-    set(name, value) {
+    setProperty(name, value) {
         this.properties[name] = value
     }
 

@@ -59,7 +59,7 @@ export class OakClass extends Callable {
 
                     if(valueNode.deep == expectedNode.arrayLevel) {
                         if(expectedNode.type == valueNode.type) {
-                            instance.set(assignee.name, valueNode)
+                            instance.setProperty(assignee.name, valueNode)
                             return
                         }
 
@@ -103,7 +103,7 @@ export class OakClass extends Callable {
                         }
 
                         valueNode.type = expectedNode.type
-                        instance.set(assignee.name, valueNode)
+                        instance.setProperty(assignee.name, valueNode)
                         return
                     }
 
@@ -120,13 +120,13 @@ export class OakClass extends Callable {
 
             if(valueNode.type == 'null' && isNullValid) {
                 valueNode.type = expectedNode.type
-                instance.set(assignee.name, valueNode)
+                instance.setProperty(assignee.name, valueNode)
                 return
             }
     
             // this meand different types of objects
             if(expectedNode.type == valueNode.type && isNullValid) {
-                instance.set(assignee.name, valueNode)
+                instance.setProperty(assignee.name, valueNode)
                 return
             }
 
@@ -140,7 +140,7 @@ export class OakClass extends Callable {
     
             // means is either booelan or char, we can just assign if equals without seeing if int fits in float
             if(left == right && left != 'string' && left != undefined) {
-                instance.set(assignee.name, valueNode)
+                instance.setProperty(assignee.name, valueNode)
                 return
             }
     
@@ -153,13 +153,13 @@ export class OakClass extends Callable {
             // }
 
             if (expectedNode.type == valueNode.type) {
-                instance.set(assignee.name, valueNode)
+                instance.setProperty(assignee.name, valueNode)
                 return
             }
     
             if (expectedNode.type == 'float' && valueNode.type == 'int') {
                 const value = new nodes.Literal({type: 'float', value: valueNode.value})
-                instance.set(assignee.name, value)
+                instance.setProperty(assignee.name, value)
                 return
             }
     
