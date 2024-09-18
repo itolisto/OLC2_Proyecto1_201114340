@@ -5,6 +5,7 @@ import { OakError } from "./oaklang.error.js"
 import { OakArray } from "./oaklang.array.js"
 import { OakClass } from "./oaklang.class.js"
 import nodes from "./oaklang.nodes.impl.js"
+import { OakReturn } from "./transfer.js"
 
 /**
  * Clase que representa una función declarada en OakLang.
@@ -190,13 +191,13 @@ export class DeclaredFunction extends Callable {
             })
 
             // if function doesn't have a return statement this will throw the exception
-            throw new errors.OakReturn(undefined)
+            throw new OakReturn(undefined)
         } catch (error) {
             interpreter.printTable(`function ${this.node.id}`)
             interpreter.environment = prevEnv
 
             // this.node has properties: returnType{ type, arrayLevel}, id, params[{ type{ type, arrayLevel}, id }], body[statements]
-            if (error instanceof errors.OakReturn) {
+            if (error instanceof OakReturn) {
                 const location = error.location
                 const valueNode = error.value
                 const expectedNode = this.node.returnType

@@ -11,7 +11,7 @@ import { OakConstant } from './oaklang.constant.js'
 import { Callable } from './oaklang.callable.js'
 import { OakObject } from './oaklang.object.js'
 import { OakSystem } from './oaklang.system.js'
-import { SysClass } from './sysclass.js'
+import { SysClass } from './oaklang.system.base.js'
 import embedded from './embedded.js'
 
 export class VisitorInterpreter extends BaseVisitor {

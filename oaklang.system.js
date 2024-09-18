@@ -1,6 +1,6 @@
 import { Callable } from "./oaklang.callable.js";
 import { OakError } from "./oaklang.error.js";
-import { SysClass } from "./sysclass.js";
+import { SysClass } from "./oaklang.system.base.js";
 import nodes from "./oaklang.nodes.impl.js"
 
 /**
@@ -75,7 +75,7 @@ class OakOutputStream extends SysClass {
      * @throws {OakError} Siempre lanza un error ya que las propiedades no pueden ser modificadas.
      */
     set(name, node) {
-        throw new OakError(null, `Illegal set, Class OakOutputStream doesn't have nay properties`)
+        throw new OakError(null, `Illegal set, Class OakOutputStream doesn't have any properties`)
     }
 
     /**
