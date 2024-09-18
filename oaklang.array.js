@@ -1,5 +1,5 @@
 import { OakIndexOf, OakJoin, OakLength } from "./oaklang.array.functions.js"
-import { OakError } from "./oakerror.js"
+import { OakError } from "./oaklang.error.js"
 
 /**
  * Clase que representa un arreglo en OakLang.

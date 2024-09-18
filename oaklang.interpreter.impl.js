@@ -1,7 +1,7 @@
 import { BaseVisitor } from './oaklang.base.impl.js'
 import { Environment } from "./environment.js"
 import { DeclaredFunction } from './oaklang.declaredfunction.js'
-import { OakError } from './oakerror.js'
+import { OakError } from './oaklang.error.js'
 import { OakArray } from './oaklang.array.js'
 import nodes, { Break } from './oaklang.nodes.impl.js'
 import { OakClass } from './oakclass.js'
