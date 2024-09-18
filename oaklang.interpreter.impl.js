@@ -1,4 +1,4 @@
-import { BaseVisitor } from './oaklang.base.impl.js'
+import { BaseVisitor } from './oaklang.interpreter.impl.base.js'
 import { Environment } from "./environment.js"
 import { DeclaredFunction } from './oaklang.declaredfunction.js'
 import { OakError } from './oaklang.error.js'
