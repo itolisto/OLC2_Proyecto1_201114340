@@ -4,33 +4,71 @@ import { Instance } from "./oaklang.instance.js";
 import { OakArray } from "./oaklang.array.js";
 import nodes from "./oaklang.nodes.impl.js"
 
+/**
+ * Clase que representa una clase en OakLang. Hereda de Callable y define el comportamiento de una clase, incluyendo propiedades y la capacidad de invocación.
+ */
 export class OakClass extends Callable {
+    /**
+     * Crea una nueva instancia de OakClass.
+     * 
+     * @param {Object} type - El tipo de la clase, que incluye información como el nombre y el nivel de arrays.
+     * @param {Array} properties - Las propiedades de la clase, cada una con un nombre y tipo.
+     */
     constructor(type, properties) {
         super()
-        this.type = type
         // type{ type, arrayLevel: arrayLevel.length }, name }
+        /** @type {Object} */
+        this.type = type
+        /** @type {Array} */
         this.properties = properties
     }
 
+    /**
+     * Devuelve la cantidad de propiedades de la clase.
+     * 
+     * @returns {number} La cantidad de propiedades en la clase.
+     */
     arity() {
         return this.properties.length
     }
 
+    /**
+     * Recupera una propiedad de la clase por su nombre.
+     * 
+     * @param {string} name - El nombre de la propiedad que se busca.
+     * @returns {Object|undefined} La propiedad encontrada o `undefined` si no existe.
+     */
     getProperty(name) {
         return this.properties.find((prop) => prop.name == name )
     }
 
-    // args[{ id, expression }] expressions will be already "interpreted" so we can assume a type and value property
+    // args[{ id, expression }] las expresiones pueden considerarse "interpretadas" asi que podemos asumir un tipo y valor final
+    /**
+     * Invoca la clase OakLang con los argumentos proporcionados, verificando que los tipos y cantidades coincidan con las propiedades.
+     * 
+     * @param {Object} interpreter - El intérprete que ejecuta el código.
+     * @param {Array} args - Los argumentos pasados a la clase, con valores y tipos.
+     * @param {Object} location - La ubicación en el código para la gestión de errores.
+     * @throws {OakError} Si el número o tipo de argumentos no coincide con las propiedades de la clase.
+     * @returns {Instance} La instancia de la clase creada con los valores de argumentos proporcionados.
+     */
     invoke(interpreter, args, location) {
         // 1. check all args list is same size as props
         if(this.arity() < args.length) throw new OakError(location, `args are more than expected`)
         if(this.arity() > args.length) throw new OakError(location, `provide all properties a value`)
-        
         // 3. return
         return this.createInstance(interpreter, args)
     }
 
-
+    /**
+     * Crea una nueva instancia de la clase con los valores proporcionados.
+     * 
+     * @param {Object} interpreter - El intérprete que ejecuta el código.
+     * @param {Array} args - Los argumentos pasados a la clase, con valores y tipos.
+     * @param {Object} location - La ubicación en el código para la gestión de errores.
+     * @throws {OakError} Si el tipo o el valor de las propiedades no coincide con las expectativas de la clase.
+     * @returns {Instance} La instancia de la clase creada.
+     */
     createInstance(interpreter, args, location) {
         const instance = new Instance(this, this.type)
 
