@@ -4,7 +4,7 @@ import { OakArray } from "./oaklang.array.js";
 import { Callable } from "./oaklang.callable.js";
 import { SysClass } from "./sysclass.js";
 import { OakConstant } from "./oaklang.constant.js";
-import { DeclaredFunction } from "./declaredfunction.js";
+import { DeclaredFunction } from "./oaklang.declaredfunction.js";
 
 export class Environment {
     constructor(parent = undefined) {
