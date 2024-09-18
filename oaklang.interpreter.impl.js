@@ -522,10 +522,10 @@ export class VisitorInterpreter extends BaseVisitor {
                         if(valueNode.deep == expectedNode.deep) {
                             if(expectedNode.type == valueNode.type && expectedNode.type != 'null') {
                                 if(indexes.length == 0) {
-                                    instance.set(node.assignee.name, valueNode)
+                                    instance.setProperty(node.assignee.name, valueNode)
                                     return valueNode
                                 } else {
-                                    instance.set(indexes[indexes.length - 1], valueNode)
+                                    instance.setProperty(indexes[indexes.length - 1], valueNode)
                                     return valueNode
                                 }
                             }
@@ -564,11 +564,11 @@ export class VisitorInterpreter extends BaseVisitor {
         
                             if(indexes.length == 0) {
                                 valueNode.type = expectedNode.type
-                                instance.set(node.assignee.name, valueNode)
+                                instance.setProperty(node.assignee.name, valueNode)
                                 return valueNode
                             } else {
                                 valueNode.type = expectedNode.type
-                                instance.set(indexes[indexes.length - 1], valueNode)
+                                instance.setProperty(indexes[indexes.length - 1], valueNode)
                                 return valueNode
                             }
                         }
@@ -588,10 +588,10 @@ export class VisitorInterpreter extends BaseVisitor {
         if(expectedNode.type == valueNode.type && isNullValid) {
             if(node.operator != "=") throw new OakError(location, `invalid assignment ${node.operator}`)
                 if(indexes.length == 0) {
-                    instance.set(node.assignee.name, valueNode)
+                    instance.setProperty(node.assignee.name, valueNode)
                     return valueNode
                 } else {
-                    instance.set(indexes[indexes.length - 1], valueNode)
+                    instance.setProperty(indexes[indexes.length - 1], valueNode)
                     return valueNode
                 }
         }
@@ -600,11 +600,11 @@ export class VisitorInterpreter extends BaseVisitor {
             if(node.operator != "=") throw new OakError(location, `invalid assignment ${node.operator}`)
                 if(indexes.length == 0) {
                     valueNode.type = expectedNode.type
-                    instance.set(node.assignee.name, valueNode)
+                    instance.setProperty(node.assignee.name, valueNode)
                     return valueNode
                 } else {
                     valueNode.type = expectedNode.type
-                    instance.set(indexes[indexes.length - 1], valueNode)
+                    instance.setProperty(indexes[indexes.length - 1], valueNode)
                     return valueNode
                 }
         }
@@ -622,10 +622,10 @@ export class VisitorInterpreter extends BaseVisitor {
             if(node.operator != "=") throw new OakError(location, `invalid assignment ${node.operator}`)
             
             if(indexes.length == 0) {
-                instance.set(node.assignee.name, valueNode)
+                instance.setProperty(node.assignee.name, valueNode)
                 return value
             } else {
-                instance.set(indexes[indexes.length - 1], valueNode)
+                instance.setProperty(indexes[indexes.length - 1], valueNode)
                 return value
             }
         }
@@ -677,10 +677,10 @@ export class VisitorInterpreter extends BaseVisitor {
         if (value == undefined) throw new OakError(location, `invalid type, expected ${expectedNode.type} but found ${valueNode.type} `)
 
         if(indexes.length == 0) {
-            instance.set(node.assignee.name, value)
+            instance.setProperty(node.assignee.name, value)
             return value
         } else {
-            instance.set(indexes[indexes.length - 1], value)
+            instance.setProperty(indexes[indexes.length - 1], value)
             return value
         }
 
@@ -703,10 +703,10 @@ export class VisitorInterpreter extends BaseVisitor {
         //     }
 
         //     if(indexes.length == 0) {
-        //         instance.set(node.assignee.name, value)
+        //         instance.setProperty(node.assignee.name, value)
         //         return value
         //     } else {
-        //         instance.set(indexes[indexes.length - 1], value)
+        //         instance.setProperty(indexes[indexes.length - 1], value)
         //         return value
         //     }
         // }
