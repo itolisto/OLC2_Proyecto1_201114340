@@ -5,22 +5,44 @@ import { OakError } from "./oakerror.js"
 import { OakArray } from "./oaklang.array.js"
 import { OakClass } from "./oakclass.js"
 import nodes from "./oaklang.nodes.impl.js"
-import transfer from "./transfer.js"
 
+/**
+ * Clase que representa una función declarada en OakLang.
+ * Se encarga de manejar los parámetros de la función, su ejecución y la comprobación de tipos.
+ */
 export class DeclaredFunction extends Callable {
-    // node is the function node // returnType{ type, arrayLevel}, id, params[{ type{ type, arrayLevel}, id }], body[statements] innerscope is a local environment with a reference to the parent
+    // "node" es el nodo de la funcion
+    // returnType {type, arrayLevel}, id, params[{ type{ type, arrayLevel}, id }], body[statements]: "innerscope" es el ambiente local con referencia al padre
+    /**
+     * Crea una nueva función declarada.
+     * 
+     * @param {Object} node - El nodo que representa la estructura de la función (retorno, parámetros, cuerpo).
+     * @param {Environment} outerScope - El entorno exterior donde se ejecutará la función.
+     */
     constructor({node, outerScope}) {
         super()
         this.node = node
         this.outerScope = outerScope
     }
 
+    /**
+     * Devuelve el número de parámetros que la función espera recibir.
+     * 
+     * @returns {number} La cantidad de parámetros.
+     */
     arity() {
         return this.node.params.length
     }
 
+    /**
+     * Ejecuta la función con el intérprete y los argumentos proporcionados.
+     * 
+     * @param {Object} interpreter - El intérprete que ejecuta la función.
+     * @param {Array} args - Los argumentos proporcionados a la función.
+     * @throws {OakError} Si el número de argumentos no coincide con el número esperado.
+     * @returns {*} El valor devuelto por la función.
+     */
     invoke(interpreter, args) {
-        
         // 1. check all args list is same size as props
         if(this.arity() < args.length) throw new OakError(location, `args are more than expected`)
         if(this.arity() > args.length) throw new OakError(location, `provide all parameters a value`)
@@ -30,6 +52,7 @@ export class DeclaredFunction extends Callable {
         const prevEnv = interpreter.environment
         const innerEnv = new Environment(prevEnv)
         
+        // Asignación de parámetros a variables locales
         args.forEach((arg, index) => {
             const assignee = params[index]
 
