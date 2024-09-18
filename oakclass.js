@@ -1,6 +1,6 @@
 import { Callable } from "./oaklang.callable.js";
 import { OakError } from "./oakerror.js";
-import { Instance } from "./instance.js";
+import { Instance } from "./oaklang.instance.js";
 import { OakArray } from "./oaklang.array.js";
 import nodes from "./oaklang.nodes.impl.js"
 
