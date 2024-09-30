@@ -133,8 +133,11 @@ class Println extends Callable {
                 throw new OakError(null, `only primitive vals can be printned, ${currentVal.type} may be array or object`)
             }
 
-            if (prevArg != undefined)  result = `${prevArg} ${currentVal.value}`
-            else result = currentVal.value
+            if (prevArg != undefined) {
+                result = `${prevArg} ${currentVal.value} / ${currentVal.type}`
+            } else {
+                result = `${currentVal.value} / ${currentVal.type} `
+            }
             
             return result
         },
